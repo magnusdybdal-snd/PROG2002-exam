@@ -28,7 +28,7 @@ void main()
         min(tilePos.y, 1.0 - tilePos.y)
     );
 
-    // step returns 0.0 or 1.0, 
+    // step returns 0.0 or 1.0, 1.0 when we are on an edge, else 0.0
     float alpha = step(distanceToEdge, borderWidth);
 
     vec3 color = vec3(0.0, 1.0, 0.0);
