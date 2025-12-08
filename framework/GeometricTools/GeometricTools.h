@@ -157,8 +157,8 @@ namespace GeometricTools
                 // Calculate the 4 corner vertex indices of the current cell
                 unsigned int bottomLeft  = y * (DivisionsX + 1) + x;
                 unsigned int bottomRight = y * (DivisionsX + 1) + (x + 1);
-                unsigned int topLeft     = (y + 1) * (DivisionsY + 1) + x;
-                unsigned int topRight    = (y + 1) * (DivisionsY + 1) + (x + 1); 
+                unsigned int topLeft     = (y + 1) * (DivisionsX + 1) + x;
+                unsigned int topRight    = (y + 1) * (DivisionsX + 1) + (x + 1); 
 
                 // First triangle (bottom-left triangle of the cell)
                 indices[index++] = bottomLeft;

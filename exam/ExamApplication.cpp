@@ -73,17 +73,17 @@ unsigned ExamApplication::Run()
 
 void ExamApplication::InitializeTunnel()
 {
-    auto vertices = GeometricTools::UnitGridGeometry2D<5, 10>();
-    auto indices = GeometricTools::UnitGridTopologyTriangles<5, 10>();
+    auto vertices = GeometricTools::UnitGridGeometry2D<5,10>();
+    auto indices = GeometricTools::UnitGridTopologyTriangles<5,10>();
 
     m_bottomWallModelMatrix = glm::mat4(1.0f);
     m_bottomWallModelMatrix = glm::scale(
         m_bottomWallModelMatrix,
-        glm::vec3(3.0f, 3.0f, 1.0f));
+        glm::vec3(1.0f, 2.0f, 1.0f));
     m_bottomWallModelMatrix = glm::rotate(
         m_bottomWallModelMatrix,
-        glm::radians(45.0f),
-        glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::radians(0.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f));
     m_bottomWallModelMatrix = glm::translate(
         m_bottomWallModelMatrix,
         glm::vec3(0.0f, 0.0f, 0.0f));
@@ -116,6 +116,9 @@ void ExamApplication::RenderTunnel()
 {
     m_tunnelShaderProgram->Bind();
     m_tunnelVAO->Bind();
+
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_bottomWallModelMatrix);
+
 
     RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
 }
