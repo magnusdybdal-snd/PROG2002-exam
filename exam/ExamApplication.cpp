@@ -72,7 +72,7 @@ unsigned ExamApplication::Run()
         // Process events
         glfwPollEvents();
 
-        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe
         RenderTunnel();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Back to normal
 
@@ -130,7 +130,7 @@ void ExamApplication::InitializeTunnel()
     m_backWallModelMatrix = glm::scale(m_backWallModelMatrix, glm::vec3(tunnelWidth, tunnelHeight, 1.0f));
     // Top wall
     m_topWallModelMatrix = glm::mat4(1.0f);
-    m_topWallModelMatrix = glm::translate(m_topWallModelMatrix, glm::vec3(0.0f, tunnelHeight/2, -tunnelDepth/2.0f));
+    m_topWallModelMatrix = glm::translate(m_topWallModelMatrix, glm::vec3(0.0f, tunnelHeight/2.0f, -tunnelDepth/2.0f));
     m_topWallModelMatrix = glm::rotate(m_topWallModelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     m_topWallModelMatrix = glm::scale(m_topWallModelMatrix, glm::vec3(tunnelWidth, tunnelHeight*2, 1.0f));
     // Left wall
@@ -139,6 +139,17 @@ void ExamApplication::InitializeTunnel()
     m_leftWallModelMatrix = glm::rotate(m_leftWallModelMatrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     m_leftWallModelMatrix = glm::rotate(m_leftWallModelMatrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     m_leftWallModelMatrix = glm::scale(m_leftWallModelMatrix, glm::vec3(tunnelWidth, tunnelHeight*2, 1.0f));
+    // Right wall
+    m_rightWallModelMatrix = glm::mat4(1.0f);
+    m_rightWallModelMatrix = glm::translate(m_rightWallModelMatrix, glm::vec3(tunnelWidth/2, 0.0f, -tunnelDepth/2.0f));
+    m_rightWallModelMatrix = glm::rotate(m_rightWallModelMatrix, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    m_rightWallModelMatrix = glm::rotate(m_rightWallModelMatrix, glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    m_rightWallModelMatrix = glm::scale(m_rightWallModelMatrix, glm::vec3(tunnelWidth, tunnelHeight*2, 1.0f));
+    // Bottom wall
+    m_bottomWallModelMatrix = glm::mat4(1.0f);
+    m_bottomWallModelMatrix = glm::translate(m_bottomWallModelMatrix, glm::vec3(0.0f, -tunnelHeight/2.0f, -tunnelDepth/2.0f));
+    m_bottomWallModelMatrix = glm::rotate(m_bottomWallModelMatrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    m_bottomWallModelMatrix = glm::scale(m_bottomWallModelMatrix, glm::vec3(tunnelWidth, tunnelHeight*2, 1.0f));
 
 }
 
@@ -167,8 +178,18 @@ void ExamApplication::RenderTunnel()
     m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_topWallModelMatrix);
     RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
 
+    // Left wall
     m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_leftWallModelMatrix);
     RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
+
+    // Right wall
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_rightWallModelMatrix);
+    RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
+
+    // Bottom wall
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_bottomWallModelMatrix);
+    RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
+    
     
 
 }
