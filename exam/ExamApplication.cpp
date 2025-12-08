@@ -83,6 +83,7 @@ unsigned ExamApplication::Run()
 
         RenderTunnel();
         RenderActiveCube();
+        HandleInput();
 
         glfwSwapBuffers(window);
     }
@@ -195,6 +196,58 @@ void ExamApplication::InitializeShaders()
     m_activeCubeShaderProgram = std::make_unique<Shader>(
         activeCubeVertexShaderSrc.c_str(), activeCubeFragmentShaderSrc.c_str()
     );
+}
+
+void ExamApplication::HandleInput()
+{
+    GLFWwindow* window = GetWindow();
+
+    InputHandleBlockMovement(window);
+
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+}
+
+void ExamApplication::InputHandleBlockMovement(GLFWwindow * window)
+{
+    static bool keyWasPressed = false;
+    bool keyIsPressed = false;
+
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+        if (!keyWasPressed) {
+            m_cubeModelMatrix = glm::mat4(1.0f);
+            m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.5f, -1.0f, 2.0f));
+            m_cubeModelMatrix = glm::scale(m_cubeModelMatrix, glm::vec3(0.5f));
+        }
+        keyIsPressed = true;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+        if (!keyWasPressed) {
+            m_cubeModelMatrix = glm::mat4(1.0f);
+            m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(-0.5f, -1.0f, 2.0f));
+            m_cubeModelMatrix = glm::scale(m_cubeModelMatrix, glm::vec3(0.5f));
+        }
+        keyIsPressed = true;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+        if (!keyWasPressed) {
+            m_cubeModelMatrix = glm::mat4(1.0f);
+            m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, -2.5f));
+            m_cubeModelMatrix = glm::scale(m_cubeModelMatrix, glm::vec3(0.5f));
+        }
+        keyIsPressed = true;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+        if (!keyWasPressed) {
+            m_cubeModelMatrix = glm::mat4(1.0f);
+            m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 2.0f));
+            m_cubeModelMatrix = glm::scale(m_cubeModelMatrix, glm::vec3(0.5f));
+        }
+        keyIsPressed = true;
+    }
+
+    keyWasPressed = keyIsPressed;
 }
 
 void ExamApplication::RenderTunnel()
