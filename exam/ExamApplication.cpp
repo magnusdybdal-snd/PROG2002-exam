@@ -72,10 +72,7 @@ unsigned ExamApplication::Run()
         // Process events
         glfwPollEvents();
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe
         RenderTunnel();
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Back to normal
-
 
         glfwSwapBuffers(window);
     }
@@ -171,10 +168,12 @@ void ExamApplication::RenderTunnel()
     m_tunnelShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
     
     m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_backWallModelMatrix);
+    m_tunnelShaderProgram->UploadUniformFloat2("u_GridSize", {5.0f, 5.0f});
     RenderCommands::DrawIndex(m_backWallVAO, GL_TRIANGLES);
 
     // Top wall
     m_tunnelVAO->Bind();
+    m_tunnelShaderProgram->UploadUniformFloat2("u_GridSize", {5.0f, 10.0f});
     m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_topWallModelMatrix);
     RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
 
@@ -189,7 +188,4 @@ void ExamApplication::RenderTunnel()
     // Bottom wall
     m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_bottomWallModelMatrix);
     RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
-    
-    
-
 }
