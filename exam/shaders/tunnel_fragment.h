@@ -14,7 +14,7 @@ uniform vec2 u_GridSize;
 
 void main()
 {
-    float borderWidth = 0.04;
+    float borderWidth = 0.05;
 
     // Scale position to grid coordinates
     vec2 gridCoord = v_GridPos * u_GridSize;

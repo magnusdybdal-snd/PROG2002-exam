@@ -29,12 +29,12 @@ public:
 private:
 
     // ===== CAMERA CONSTANTS =====
-    static constexpr float CAMERA_FOV = 45.0f;              // degrees
+    static constexpr float CAMERA_FOV = 60.0f;              // degrees
     static constexpr float CAMERA_WIDTH = 1024.0f;
     static constexpr float CAMERA_HEIGHT = 768.0f;
     static constexpr float CAMERA_NEAR_PLANE = 0.1f;
-    static constexpr float CAMERA_FAR_PLANE = 15.0f;
-    static constexpr float CAMERA_DISTANCE = 2.5f;          // Z distance from origin
+    static constexpr float CAMERA_FAR_PLANE = 20.0f;
+    static constexpr float CAMERA_DISTANCE = 4.5f;          // Z distance from origin
 
     // ===== DYNAMIC MEMBER VARIABLES =====
     bool m_textureEnabled = false;
@@ -42,7 +42,9 @@ private:
     // ===== SMART POINTERS =====
     std::shared_ptr<VertexArray> m_backWallVAO;
     std::shared_ptr<VertexArray> m_tunnelVAO;
+    std::shared_ptr<VertexArray> m_activeCubeVAO;
     std::unique_ptr<Shader> m_tunnelShaderProgram;
+    std::unique_ptr<Shader> m_activeCubeShaderProgram;
     std::unique_ptr<PerspectiveCamera> m_camera;
 
     // ===== MODEL MATRICES =====
@@ -51,13 +53,16 @@ private:
     glm::mat4 m_bottomWallModelMatrix;
     glm::mat4 m_leftWallModelMatrix;
     glm::mat4 m_rightWallModelMatrix;
+    glm::mat4 m_cubeModelMatrix;
 
     // ===== INITIALIZATOIN =====
     void InitializeTunnel();
+    void InitializeCube();
     void InitializeShaders();
 
     // ===== RENDERING =====
     void RenderTunnel();
+    void RenderActiveCube();
 
 };
 #endif // AssignmentApplication_H_
