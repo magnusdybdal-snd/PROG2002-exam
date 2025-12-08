@@ -5,6 +5,8 @@
 
 #include "shaders/tunnel_vertex.h"
 #include "shaders/tunnel_fragment.h"
+#include "shaders/active_cube_vertex.h"
+#include "shaders/active_cube_fragment.h"
 
 /**
  * Constructor for ExamApplication
@@ -45,11 +47,13 @@ unsigned ExamApplication::Init()
 
     glEnable(GL_DEPTH_TEST);
     // Enable blending for transparent tiles where no border
+    // https://learnopengl.com/Advanced-OpenGL/Blending
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
     InitializeTunnel();
+    InitializeCube();
     InitializeShaders();
 
     return EXIT_SUCCESS;
@@ -76,7 +80,9 @@ unsigned ExamApplication::Run()
         // Process events
         glfwPollEvents();
 
+
         RenderTunnel();
+        RenderActiveCube();
 
         glfwSwapBuffers(window);
     }
@@ -121,9 +127,9 @@ void ExamApplication::InitializeTunnel()
 
     // Model matrices for all walls
 
-    float tunnelWidth = 2.0f;
-    float tunnelHeight = 2.0f;
-    float tunnelDepth = 8.0f;
+    float tunnelWidth = 5.0f;
+    float tunnelHeight = 5.0f;
+    float tunnelDepth = 10.0f;
 
     // Back wall
     m_backWallModelMatrix = glm::mat4(1.0f);
@@ -154,6 +160,30 @@ void ExamApplication::InitializeTunnel()
 
 }
 
+void ExamApplication::InitializeCube()
+{
+    auto cubeVertices = GeometricTools::UnitCubeGeometry3D;
+    auto cubeIndices = GeometricTools::UnitCubeTopologyTriangles;
+
+    auto cubeVertexBuffer = std::make_shared<VertexBuffer>(cubeVertices.data(), cubeVertices.size() * sizeof(float));
+    auto cubeIndexBuffer = std::make_shared<IndexBuffer>(cubeIndices.data(), cubeIndices.size());
+    auto cubeBufferLayout = BufferLayout(
+        {
+            { ShaderDataType::Float3, "cube_position" }
+        }
+    );
+    cubeVertexBuffer->SetLayout(cubeBufferLayout);
+
+    m_activeCubeVAO = std::make_shared<VertexArray>();
+    m_activeCubeVAO->AddVertexBuffer(cubeVertexBuffer);
+    m_activeCubeVAO->SetIndexBuffer(cubeIndexBuffer);
+    m_activeCubeVAO->Unbind();
+
+    m_cubeModelMatrix = glm::mat4(1.0f);
+    m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 2.0f));
+    m_cubeModelMatrix = glm::scale(m_cubeModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
+}
+
 /**
  * Initializes the shader programs
  */
@@ -161,6 +191,9 @@ void ExamApplication::InitializeShaders()
 {   
     m_tunnelShaderProgram = std::make_unique<Shader>(
         tunnelVertexShaderSrc.c_str(), tunnelFragmentShaderSrc.c_str()
+    );
+    m_activeCubeShaderProgram = std::make_unique<Shader>(
+        activeCubeVertexShaderSrc.c_str(), activeCubeFragmentShaderSrc.c_str()
     );
 }
 
@@ -192,4 +225,14 @@ void ExamApplication::RenderTunnel()
     // Bottom wall
     m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_bottomWallModelMatrix);
     RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
+}
+
+void ExamApplication::RenderActiveCube()
+{
+    m_activeCubeShaderProgram->Bind();
+    m_activeCubeVAO->Bind();
+
+    m_activeCubeShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
+    m_activeCubeShaderProgram->UploadUniformMat4("u_activeCubeModelMatrix", m_cubeModelMatrix);
+    RenderCommands::DrawIndex(m_activeCubeVAO, GL_TRIANGLES);
 }
