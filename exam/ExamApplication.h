@@ -9,6 +9,7 @@
 #include "BufferLayout.h"
 #include "VertexArray.h"
 #include "Shader.h"
+#include "PerspectiveCamera.h"
 
 #include <memory>
 #include <glm/glm.hpp>
@@ -27,9 +28,21 @@ public:
 
 private:
 
+    // ===== CAMERA CONSTANTS =====
+    static constexpr float CAMERA_FOV = 45.0f;              // degrees
+    static constexpr float CAMERA_WIDTH = 1024.0f;
+    static constexpr float CAMERA_HEIGHT = 768.0f;
+    static constexpr float CAMERA_NEAR_PLANE = 0.1f;
+    static constexpr float CAMERA_FAR_PLANE = 15.0f;
+    static constexpr float CAMERA_DISTANCE = 4.0f;          // Z distance from origin
+
+    // ===== DYNAMIC MEMBER VARIABLES =====
+    bool m_textureEnabled = false;
+
     // ===== SMART POINTERS =====
     std::shared_ptr<VertexArray> m_tunnelVAO;
     std::unique_ptr<Shader> m_tunnelShaderProgram;
+    std::unique_ptr<PerspectiveCamera> m_camera;
 
     // ===== MODEL MATRICES =====
     glm::mat4 m_bottomWallModelMatrix;

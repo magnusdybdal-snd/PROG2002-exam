@@ -35,6 +35,14 @@ unsigned ExamApplication::Init()
         return EXIT_FAILURE;
     }
 
+    // =============== CAMERA SETUP ===============
+    m_camera = std::make_unique<PerspectiveCamera>(
+        PerspectiveCamera::Frustrum{CAMERA_FOV, CAMERA_WIDTH, CAMERA_HEIGHT, CAMERA_NEAR_PLANE, CAMERA_FAR_PLANE},
+        glm::vec3(0.0f, 0.0f, -CAMERA_DISTANCE), // camera position - 
+        glm::vec3(0.0f, 0.0f, 0.0f), // look at vector - camera looks at origin.
+        glm::vec3(0.0f, 1.0f, 0.0f)  // up-direction.
+    );
+
     InitializeTunnel();
     InitializeShaders();
 
@@ -73,17 +81,17 @@ unsigned ExamApplication::Run()
 
 void ExamApplication::InitializeTunnel()
 {
-    auto vertices = GeometricTools::UnitGridGeometry2D<5,10>();
-    auto indices = GeometricTools::UnitGridTopologyTriangles<5,10>();
+    auto vertices = GeometricTools::UnitGridGeometry2D<5,5>();
+    auto indices = GeometricTools::UnitGridTopologyTriangles<5,5>();
 
     m_bottomWallModelMatrix = glm::mat4(1.0f);
     m_bottomWallModelMatrix = glm::scale(
         m_bottomWallModelMatrix,
-        glm::vec3(1.0f, 2.0f, 1.0f));
+        glm::vec3(1.0f, 1.0f, 1.0f));
     m_bottomWallModelMatrix = glm::rotate(
         m_bottomWallModelMatrix,
-        glm::radians(0.0f),
-        glm::vec3(0.0f, 0.0f, 0.0f));
+        glm::radians(-0.0f),
+        glm::vec3(1.0f, 0.0f, 0.0f));
     m_bottomWallModelMatrix = glm::translate(
         m_bottomWallModelMatrix,
         glm::vec3(0.0f, 0.0f, 0.0f));
@@ -118,6 +126,8 @@ void ExamApplication::RenderTunnel()
     m_tunnelVAO->Bind();
 
     m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_bottomWallModelMatrix);
+    m_tunnelShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
+
 
 
     RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
