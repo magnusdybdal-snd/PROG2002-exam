@@ -34,7 +34,7 @@ private:
     static constexpr float CAMERA_HEIGHT = 768.0f;
     static constexpr float CAMERA_NEAR_PLANE = 0.1f;
     static constexpr float CAMERA_FAR_PLANE = 15.0f;
-    static constexpr float CAMERA_DISTANCE = 3.0f;          // Z distance from origin
+    static constexpr float CAMERA_DISTANCE = 2.5f;          // Z distance from origin
 
     // ===== DYNAMIC MEMBER VARIABLES =====
     bool m_textureEnabled = false;

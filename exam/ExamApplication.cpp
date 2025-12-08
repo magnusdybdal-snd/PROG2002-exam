@@ -72,7 +72,10 @@ unsigned ExamApplication::Run()
         // Process events
         glfwPollEvents();
 
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe
         RenderTunnel();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Back to normal
+
 
         glfwSwapBuffers(window);
     }
@@ -123,8 +126,20 @@ void ExamApplication::InitializeTunnel()
 
     // Back wall
     m_backWallModelMatrix = glm::mat4(1.0f);
-    m_backWallModelMatrix = glm::scale(m_backWallModelMatrix, glm::vec3(tunnelWidth, tunnelHeight, 1.0f));
     m_backWallModelMatrix = glm::translate(m_backWallModelMatrix, glm::vec3(0.0f, 0.0f, -tunnelDepth));
+    m_backWallModelMatrix = glm::scale(m_backWallModelMatrix, glm::vec3(tunnelWidth, tunnelHeight, 1.0f));
+    // Top wall
+    m_topWallModelMatrix = glm::mat4(1.0f);
+    m_topWallModelMatrix = glm::translate(m_topWallModelMatrix, glm::vec3(0.0f, tunnelHeight/2, -tunnelDepth/2.0f));
+    m_topWallModelMatrix = glm::rotate(m_topWallModelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    m_topWallModelMatrix = glm::scale(m_topWallModelMatrix, glm::vec3(tunnelWidth, tunnelHeight*2, 1.0f));
+    // Left wall
+    m_leftWallModelMatrix = glm::mat4(1.0f);
+    m_leftWallModelMatrix = glm::translate(m_leftWallModelMatrix, glm::vec3(-tunnelWidth/2, 0.0f, -tunnelDepth/2.0f));
+    m_leftWallModelMatrix = glm::rotate(m_leftWallModelMatrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    m_leftWallModelMatrix = glm::rotate(m_leftWallModelMatrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    m_leftWallModelMatrix = glm::scale(m_leftWallModelMatrix, glm::vec3(tunnelWidth, tunnelHeight*2, 1.0f));
+
 }
 
 /**
@@ -142,10 +157,18 @@ void ExamApplication::RenderTunnel()
     m_tunnelShaderProgram->Bind();
     m_backWallVAO->Bind();
 
-    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_backWallModelMatrix);
     m_tunnelShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
+    
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_backWallModelMatrix);
+    RenderCommands::DrawIndex(m_backWallVAO, GL_TRIANGLES);
 
-
-
+    // Top wall
+    m_tunnelVAO->Bind();
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_topWallModelMatrix);
     RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
+
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_leftWallModelMatrix);
+    RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
+    
+
 }
