@@ -44,6 +44,10 @@ unsigned ExamApplication::Init()
     );
 
     glEnable(GL_DEPTH_TEST);
+    // Enable blending for transparent tiles where no border
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 
     InitializeTunnel();
     InitializeShaders();

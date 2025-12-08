@@ -14,9 +14,7 @@ uniform vec2 u_GridSize;
 
 void main()
 {
-    vec3 tileColor = vec4(0.0, 0.0, 0.0);
-    vec3 borderColor = vec3(0.0, 1.0, 0.0);
-    float borderWidth = 0.05;
+    float borderWidth = 0.04;
 
     // Scale position to grid coordinates
     vec2 gridCoord = v_GridPos * u_GridSize;
@@ -30,10 +28,11 @@ void main()
         min(tilePos.y, 1.0 - tilePos.y)
     );
 
-    float isBorder = step(distanceToEdge, borderWidth);
+    // step returns 0.0 or 1.0, 
+    float alpha = step(distanceToEdge, borderWidth);
 
-    vec3 color = mix(tileColor, borderColor, isBorder);
-    fragColor = vec4(color, 1.0);
+    vec3 color = vec3(0.0, 1.0, 0.0);
+    fragColor = vec4(color, alpha);
 }
 )";
 
