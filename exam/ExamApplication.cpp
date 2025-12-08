@@ -180,7 +180,7 @@ void ExamApplication::InitializeCube()
     m_activeCubeVAO->Unbind();
 
     m_cubeModelMatrix = glm::mat4(1.0f);
-    m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(1.0f, -1.0f, 0.0f));
+    m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 2.0f));
     m_cubeModelMatrix = glm::scale(m_cubeModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
 }
 
