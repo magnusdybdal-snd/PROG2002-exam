@@ -1,19 +1,16 @@
-#ifndef EXAMAPPLICATION_H
-#define EXAMAPPLICATION_H
+#include "ExamApplication.h"
 
-#include "GLFWApplication.h"
-
-class ExamApplication : public GLFWApplication
+int main(int argc, char* argv[])
 {
-public:
 
-    ExamApplication(const std::string& name, const std::string& version);
-    ~ExamApplication();
+    // Create the Assignment application
+    ExamApplication application("Exam", "1.0");
 
-    // Override base class methods
-    unsigned Init() override;
-    unsigned Run() override;
+    // Initialize
+    if (application.Init() != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
 
-private:
-};
-#endif // AssignmentApplication_H_
+    // Run the application
+    return application.Run();
+}
