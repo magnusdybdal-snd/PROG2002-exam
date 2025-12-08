@@ -36,6 +36,7 @@ private:
 
     // ===== INITIALIZATOIN =====
     void InitializeTunnel();
+    void InitializeShaders();
 
     // ===== RENDERING =====
     void RenderTunnel();

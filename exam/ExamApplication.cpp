@@ -3,6 +3,9 @@
 #include <iostream>
 #include <algorithm>
 
+#include "shaders/tunnel_vertex.h"
+#include "shaders/tunnel_fragment.h"
+
 /**
  * Constructor for ExamApplication
  * Initializes the application with the given name and version, and sets up the window dimensions (1024x768)
@@ -33,6 +36,7 @@ unsigned ExamApplication::Init()
     }
 
     InitializeTunnel();
+    InitializeShaders();
 
     return EXIT_SUCCESS;
 }
@@ -69,7 +73,7 @@ unsigned ExamApplication::Run()
 
 void ExamApplication::InitializeTunnel()
 {
-    auto vertices = GeometricTools::UnitGridGeometry2DWTCoords<5, 10>();
+    auto vertices = GeometricTools::UnitGridGeometry2D<5, 10>();
     auto indices = GeometricTools::UnitGridTopologyTriangles<5, 10>();
 
     m_bottomWallModelMatrix = glm::mat4(1.0f);
@@ -87,16 +91,25 @@ void ExamApplication::InitializeTunnel()
     auto wallVertexBuffer = std::make_shared<VertexBuffer>(vertices.data(), vertices.size() * sizeof(float));
     auto wallIndexBuffer = std::make_shared<IndexBuffer>(indices.data(), indices.size());
 
-    auto chessboardBufferLayout = BufferLayout({
-        { ShaderDataType::Float2, "position" },
-        { ShaderDataType::Float2, "tCoords" }
+    auto tunnelBufferLayout = BufferLayout({
+        { ShaderDataType::Float2, "position" }
     });
-    wallVertexBuffer->SetLayout(chessboardBufferLayout);
+    wallVertexBuffer->SetLayout(tunnelBufferLayout);
 
     m_tunnelVAO = std::make_shared<VertexArray>();
     m_tunnelVAO->AddVertexBuffer(wallVertexBuffer);
     m_tunnelVAO->SetIndexBuffer(wallIndexBuffer);
     m_tunnelVAO->Unbind();
+}
+
+/**
+ * Initializes the shader programs
+ */
+void ExamApplication::InitializeShaders()
+{   
+    m_tunnelShaderProgram = std::make_unique<Shader>(
+        tunnelVertexShaderSrc.c_str(), tunnelFragmentShaderSrc.c_str()
+    );
 }
 
 void ExamApplication::RenderTunnel()
