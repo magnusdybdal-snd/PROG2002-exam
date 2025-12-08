@@ -122,7 +122,7 @@ void ExamApplication::InitializeTunnel()
 
     float tunnelWidth = 2.0f;
     float tunnelHeight = 2.0f;
-    float tunnelDepth = 4.0f;
+    float tunnelDepth = 8.0f;
 
     // Back wall
     m_backWallModelMatrix = glm::mat4(1.0f);
@@ -132,24 +132,24 @@ void ExamApplication::InitializeTunnel()
     m_topWallModelMatrix = glm::mat4(1.0f);
     m_topWallModelMatrix = glm::translate(m_topWallModelMatrix, glm::vec3(0.0f, tunnelHeight/2.0f, -tunnelDepth/2.0f));
     m_topWallModelMatrix = glm::rotate(m_topWallModelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    m_topWallModelMatrix = glm::scale(m_topWallModelMatrix, glm::vec3(tunnelWidth, tunnelHeight*2, 1.0f));
+    m_topWallModelMatrix = glm::scale(m_topWallModelMatrix, glm::vec3(tunnelWidth, tunnelDepth, 1.0f));
     // Left wall
     m_leftWallModelMatrix = glm::mat4(1.0f);
     m_leftWallModelMatrix = glm::translate(m_leftWallModelMatrix, glm::vec3(-tunnelWidth/2, 0.0f, -tunnelDepth/2.0f));
     m_leftWallModelMatrix = glm::rotate(m_leftWallModelMatrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     m_leftWallModelMatrix = glm::rotate(m_leftWallModelMatrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    m_leftWallModelMatrix = glm::scale(m_leftWallModelMatrix, glm::vec3(tunnelWidth, tunnelHeight*2, 1.0f));
+    m_leftWallModelMatrix = glm::scale(m_leftWallModelMatrix, glm::vec3(tunnelWidth, tunnelDepth, 1.0f));
     // Right wall
     m_rightWallModelMatrix = glm::mat4(1.0f);
     m_rightWallModelMatrix = glm::translate(m_rightWallModelMatrix, glm::vec3(tunnelWidth/2, 0.0f, -tunnelDepth/2.0f));
     m_rightWallModelMatrix = glm::rotate(m_rightWallModelMatrix, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     m_rightWallModelMatrix = glm::rotate(m_rightWallModelMatrix, glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    m_rightWallModelMatrix = glm::scale(m_rightWallModelMatrix, glm::vec3(tunnelWidth, tunnelHeight*2, 1.0f));
+    m_rightWallModelMatrix = glm::scale(m_rightWallModelMatrix, glm::vec3(tunnelWidth, tunnelDepth, 1.0f));
     // Bottom wall
     m_bottomWallModelMatrix = glm::mat4(1.0f);
     m_bottomWallModelMatrix = glm::translate(m_bottomWallModelMatrix, glm::vec3(0.0f, -tunnelHeight/2.0f, -tunnelDepth/2.0f));
     m_bottomWallModelMatrix = glm::rotate(m_bottomWallModelMatrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    m_bottomWallModelMatrix = glm::scale(m_bottomWallModelMatrix, glm::vec3(tunnelWidth, tunnelHeight*2, 1.0f));
+    m_bottomWallModelMatrix = glm::scale(m_bottomWallModelMatrix, glm::vec3(tunnelWidth, tunnelDepth, 1.0f));
 
 }
 
