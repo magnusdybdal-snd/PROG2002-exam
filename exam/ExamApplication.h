@@ -8,6 +8,7 @@
 #include "IndexBuffer.h"
 #include "BufferLayout.h"
 #include "VertexArray.h"
+#include "Shader.h"
 
 #include <memory>
 #include <glm/glm.hpp>
@@ -26,11 +27,18 @@ public:
 
 private:
 
+    // ===== SMART POINTERS =====
+    std::shared_ptr<VertexArray> m_tunnelVAO;
+    std::unique_ptr<Shader> m_tunnelShaderProgram;
+
     // ===== MODEL MATRICES =====
     glm::mat4 m_bottomWallModelMatrix;
 
     // ===== INITIALIZATOIN =====
     void InitializeTunnel();
+
+    // ===== RENDERING =====
+    void RenderTunnel();
 
 };
 #endif // AssignmentApplication_H_

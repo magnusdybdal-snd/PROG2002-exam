@@ -31,6 +31,9 @@ unsigned ExamApplication::Init()
     if (GLFWApplication::Init() != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
+
+    InitializeTunnel();
+
     return EXIT_SUCCESS;
 }
 
@@ -55,6 +58,8 @@ unsigned ExamApplication::Run()
         // Process events
         glfwPollEvents();
 
+        RenderTunnel();
+
         glfwSwapBuffers(window);
     }
 
@@ -70,26 +75,34 @@ void ExamApplication::InitializeTunnel()
     m_bottomWallModelMatrix = glm::mat4(1.0f);
     m_bottomWallModelMatrix = glm::scale(
         m_bottomWallModelMatrix,
-        glm::vec3(3.0f, CHESSBOARD_SCALE, 1.0f));
+        glm::vec3(3.0f, 3.0f, 1.0f));
     m_bottomWallModelMatrix = glm::rotate(
         m_bottomWallModelMatrix,
-        glm::radians(CHESSBOARD_TILT_ANGLE),
+        glm::radians(45.0f),
         glm::vec3(1.0f, 0.0f, 0.0f));
     m_bottomWallModelMatrix = glm::translate(
         m_bottomWallModelMatrix,
-        glm::vec3(0.0f, CHESSBOARD_Y_OFFSET, 0.0f));
+        glm::vec3(0.0f, 0.0f, 0.0f));
     
-    auto chessboardVertexBuffer = std::make_shared<VertexBuffer>(vertices.data(), vertices.size() * sizeof(float));
-    auto chessboardIndexBuffer = std::make_shared<IndexBuffer>(indices.data(), indices.size());
+    auto wallVertexBuffer = std::make_shared<VertexBuffer>(vertices.data(), vertices.size() * sizeof(float));
+    auto wallIndexBuffer = std::make_shared<IndexBuffer>(indices.data(), indices.size());
 
     auto chessboardBufferLayout = BufferLayout({
         { ShaderDataType::Float2, "position" },
         { ShaderDataType::Float2, "tCoords" }
     });
-    chessboardVertexBuffer->SetLayout(chessboardBufferLayout);
+    wallVertexBuffer->SetLayout(chessboardBufferLayout);
 
-    m_chessboardVAO = std::make_shared<VertexArray>();
-    m_chessboardVAO->AddVertexBuffer(chessboardVertexBuffer);
-    m_chessboardVAO->SetIndexBuffer(chessboardIndexBuffer);
-    m_chessboardVAO->Unbind();
+    m_tunnelVAO = std::make_shared<VertexArray>();
+    m_tunnelVAO->AddVertexBuffer(wallVertexBuffer);
+    m_tunnelVAO->SetIndexBuffer(wallIndexBuffer);
+    m_tunnelVAO->Unbind();
+}
+
+void ExamApplication::RenderTunnel()
+{
+    m_tunnelShaderProgram->Bind();
+    m_tunnelVAO->Bind();
+
+    RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
 }
