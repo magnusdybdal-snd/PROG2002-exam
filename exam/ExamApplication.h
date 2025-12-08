@@ -34,18 +34,21 @@ private:
     static constexpr float CAMERA_HEIGHT = 768.0f;
     static constexpr float CAMERA_NEAR_PLANE = 0.1f;
     static constexpr float CAMERA_FAR_PLANE = 15.0f;
-    static constexpr float CAMERA_DISTANCE = 4.0f;          // Z distance from origin
+    static constexpr float CAMERA_DISTANCE = 3.0f;          // Z distance from origin
 
     // ===== DYNAMIC MEMBER VARIABLES =====
     bool m_textureEnabled = false;
 
     // ===== SMART POINTERS =====
+    std::shared_ptr<VertexArray> m_backWallVAO;
     std::shared_ptr<VertexArray> m_tunnelVAO;
     std::unique_ptr<Shader> m_tunnelShaderProgram;
     std::unique_ptr<PerspectiveCamera> m_camera;
 
     // ===== MODEL MATRICES =====
-    glm::mat4 m_bottomWallModelMatrix;
+    glm::mat4 m_backWallModelMatrix;
+    glm::mat4 m_topWallModelMatrix;
+
 
     // ===== INITIALIZATOIN =====
     void InitializeTunnel();
