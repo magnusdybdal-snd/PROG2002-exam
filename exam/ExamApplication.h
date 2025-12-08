@@ -48,7 +48,9 @@ private:
     // ===== MODEL MATRICES =====
     glm::mat4 m_backWallModelMatrix;
     glm::mat4 m_topWallModelMatrix;
-
+    glm::mat4 m_bottomWallModelMatrix;
+    glm::mat4 m_leftWallModelMatrix;
+    glm::mat4 m_rightWallModelMatrix;
 
     // ===== INITIALIZATOIN =====
     void InitializeTunnel();

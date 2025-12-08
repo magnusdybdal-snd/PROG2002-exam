@@ -5,8 +5,6 @@
 
 #include "shaders/tunnel_vertex.h"
 #include "shaders/tunnel_fragment.h"
-#include "shaders/tunnel_top_vertex.h"
-#include "shaders/tunnel_top_fragment.h"
 
 /**
  * Constructor for ExamApplication
@@ -40,7 +38,7 @@ unsigned ExamApplication::Init()
     // =============== CAMERA SETUP ===============
     m_camera = std::make_unique<PerspectiveCamera>(
         PerspectiveCamera::Frustrum{CAMERA_FOV, CAMERA_WIDTH, CAMERA_HEIGHT, CAMERA_NEAR_PLANE, CAMERA_FAR_PLANE},
-        glm::vec3(0.0f, 0.0f, -CAMERA_DISTANCE), // camera position - 
+        glm::vec3(0.0f, 0.0f, CAMERA_DISTANCE), // camera position - 
         glm::vec3(0.0f, 0.0f, 0.0f), // look at vector - camera looks at origin.
         glm::vec3(0.0f, 1.0f, 0.0f)  // up-direction.
     );
@@ -85,6 +83,10 @@ unsigned ExamApplication::Run()
 
 void ExamApplication::InitializeTunnel()
 {
+    auto bufferLayout = BufferLayout({
+        { ShaderDataType::Float2, "position" }
+    });
+
     // Create 5x5 grid for the back wall
     auto backWallVertices = GeometricTools::UnitGridGeometry2D<5,5>();
     auto backWallIndices = GeometricTools::UnitGridTopologyTriangles<5,5>();
@@ -92,15 +94,12 @@ void ExamApplication::InitializeTunnel()
     auto backWallVertexBuffer = std::make_shared<VertexBuffer>(backWallVertices.data(), backWallVertices.size() * sizeof(float));
     auto backWallIndexBuffer = std::make_shared<IndexBuffer>(backWallIndices.data(), backWallIndices.size());
 
-    auto backWallBufferLayout = BufferLayout({
-        { ShaderDataType::Float2, "position" }
-    });
-    backWallVertexBuffer->SetLayout(backWallBufferLayout);
+    backWallVertexBuffer->SetLayout(bufferLayout);
 
-    m_tunnelVAO = std::make_shared<VertexArray>();
-    m_tunnelVAO->AddVertexBuffer(backWallVertexBuffer);
-    m_tunnelVAO->SetIndexBuffer(backWallIndexBuffer);
-    m_tunnelVAO->Unbind();
+    m_backWallVAO = std::make_shared<VertexArray>();
+    m_backWallVAO->AddVertexBuffer(backWallVertexBuffer);
+    m_backWallVAO->SetIndexBuffer(backWallIndexBuffer);
+    m_backWallVAO->Unbind();
 
     // Create 5x10 grid for the side walls
     auto tunnelVertices = GeometricTools::UnitGridGeometry2D<5,10>();
@@ -109,16 +108,23 @@ void ExamApplication::InitializeTunnel()
     auto tunnelVertexBuffer = std::make_shared<VertexBuffer>(tunnelVertices.data(), tunnelVertices.size() * sizeof(float));
     auto tunnelIndexBuffer = std::make_shared<IndexBuffer>(tunnelIndices.data(), tunnelIndices.size());
 
-    auto tunnelBufferLayout = BufferLayout({
-        { ShaderDataType::Float2, "position" }
-    });
-
-    tunnelVertexBuffer->SetLayout(tunnelBufferLayout);
+    tunnelVertexBuffer->SetLayout(bufferLayout);
 
     m_tunnelVAO = std::make_shared<VertexArray>();
     m_tunnelVAO->AddVertexBuffer(tunnelVertexBuffer);
     m_tunnelVAO->SetIndexBuffer(tunnelIndexBuffer);
     m_tunnelVAO->Unbind();
+
+    // Model matrices for all walls
+
+    float tunnelWidth = 2.0f;
+    float tunnelHeight = 2.0f;
+    float tunnelDepth = 4.0f;
+
+    // Back wall
+    m_backWallModelMatrix = glm::mat4(1.0f);
+    m_backWallModelMatrix = glm::scale(m_backWallModelMatrix, glm::vec3(tunnelWidth, tunnelHeight, 1.0f));
+    m_backWallModelMatrix = glm::translate(m_backWallModelMatrix, glm::vec3(0.0f, 0.0f, -tunnelDepth));
 }
 
 /**
@@ -134,7 +140,7 @@ void ExamApplication::InitializeShaders()
 void ExamApplication::RenderTunnel()
 {
     m_tunnelShaderProgram->Bind();
-    m_tunnelVAO->Bind();
+    m_backWallVAO->Bind();
 
     m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_backWallModelMatrix);
     m_tunnelShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
