@@ -53,7 +53,7 @@ unsigned ExamApplication::Init()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-
+    InitializeTextures();
     InitializeTunnel();
     InitializeCube();
     InitializeShaders();
@@ -103,7 +103,7 @@ void ExamApplication::InitializeTunnel()
     });
 
     // Create 5x5 grid for the back wall
-    auto backWallVertices = GeometricTools::UnitGridGeometry2D<5,5>();
+    auto backWallVertices = GeometricTools::UnitGridGeometry2DWTCoords<5,5>();
     auto backWallIndices = GeometricTools::UnitGridTopologyTriangles<5,5>();
     
     auto backWallVertexBuffer = std::make_shared<VertexBuffer>(backWallVertices.data(), backWallVertices.size() * sizeof(float));
@@ -214,7 +214,7 @@ void ExamApplication::InitializeShaders()
 void ExamApplication::InitializeTextures()
 {
     auto textureManager = TextureManager::GetInstance();
-    textureManager->LoadTexture2D("wallTexture", std::string(TEXTURES_DIR) + "wall_texture.jpg", 0);
+    textureManager->LoadTexture2D("wallTexture", std::string(TEXTURES_DIR) + "wall_texture.jpeg", 0);
 }
 
 void ExamApplication::HandleInput()
@@ -222,13 +222,24 @@ void ExamApplication::HandleInput()
     GLFWwindow* window = GetWindow();
 
     InputHandleBlockMovement(window);
+    InputHandleTextureToggle(window);
 
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 }
 
-void ExamApplication::InputHandleBlockMovement(GLFWwindow * window)
+void ExamApplication::InputHandleTextureToggle(GLFWwindow *window)
+{
+    static bool tWasPressed = false;
+    bool tPressed = (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS);
+       if (tPressed && !tWasPressed) {
+        m_textureEnabled = !m_textureEnabled;
+    } 
+    tWasPressed = tPressed;
+}
+
+void ExamApplication::InputHandleBlockMovement(GLFWwindow *window)
 {
     static bool keyWasPressed = false;
     bool keyIsPressed = false;
@@ -297,6 +308,7 @@ void ExamApplication::RenderTunnel()
     m_backWallVAO->Bind();
 
     m_tunnelShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
+    m_tunnelShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
     
     m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_backWallModelMatrix);
     m_tunnelShaderProgram->UploadUniformFloat2("u_GridSize", {5.0f, 5.0f});

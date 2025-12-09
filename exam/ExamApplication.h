@@ -85,6 +85,7 @@ private:
     // ===== Input =====
     void HandleInput();
     void InputHandleBlockMovement(GLFWwindow *window);
+    void InputHandleTextureToggle(GLFWwindow *window);
 
     void MoveActiveCube();
     void MakeActiveCubeSolid();

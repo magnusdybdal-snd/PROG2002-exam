@@ -6,13 +6,15 @@
 const std::string tunnelVertexShaderSrc = R"(
 #version 430 core
 
-layout(location = 0) in vec2 position;
+layout(location = 0) in vec2 position;  // Input 2D position coords from VBO
+layout(location = 1) in vec2 tCoords;   // Input 2D texture coords from VBO
 
 // Uniforms
 uniform mat4 u_tunnelModelMatrix;
 uniform mat4 u_ViewProjectionMatrix;
 
-out vec2 v_GridPos; // Pas grid position to fragment shader
+out vec2 v_GridPos;                     // Output pass grid position to fragment shader
+out vec2 v_tCoords;                     // Output pass texture coordinates to fragment shader
 
 void main()
 {
@@ -20,6 +22,8 @@ void main()
 
     // Convert from (-0.5, 0.5) to (0.0, 1.0)
     v_GridPos = position + 0.5;
+    // Pass texture coordinates
+    v_tCoords = tCoords;
 }
 
 )";
