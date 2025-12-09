@@ -29,8 +29,9 @@ public:
 private:
 
     struct SolidBlock {
-        glm::vec3 gridPosition;     // Grid coordinates in tunnel
-        glm::vec3 color;            // Color (based on z coordinate)
+        glm::ivec3 gridCoordinate;      // Grid coordinates in tunnel
+        glm::vec3  worldCoordinate;     // World coordinate
+        glm::vec3  color;               // Color (based on grid coordinate)
     };
 
     // ===== CAMERA CONSTANTS =====
@@ -45,8 +46,8 @@ private:
     bool m_textureEnabled = false;
 
     // ===== ACTIVE BLOCK =====
-    float m_activeCubeLastMoveTime = 0;                            // Keeps track of when to automatically move inwards
-    glm::ivec3 m_activeCubeGridPos = glm::ivec3(2.0f, 0.0f, 0.0f); // Starting position in the tube
+    float m_activeCubeLastMoveTime = 0;                     // Keeps track of when to automatically move inwards
+    glm::ivec3 m_activeCubeGridPos = glm::ivec3(2, 0, 0);   // Starting position in the tube
     std::shared_ptr<VertexArray> m_activeCubeVAO;
     std::unique_ptr<Shader> m_activeCubeShaderProgram;
 
@@ -77,6 +78,7 @@ private:
     // ===== RENDERING =====
     void RenderTunnel();
     void RenderActiveCube();
+    void RenderSolidBlocks();
 
     // ===== Input =====
     void HandleInput();

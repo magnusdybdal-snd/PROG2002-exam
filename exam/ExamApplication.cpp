@@ -183,6 +183,12 @@ void ExamApplication::InitializeCube()
     m_activeCubeVAO->SetIndexBuffer(cubeIndexBuffer);
     m_activeCubeVAO->Unbind();
 
+    // Initialize solid blocks vao with the same geometry
+    m_solidBlocksVAO = std::make_shared<VertexArray>();
+    m_solidBlocksVAO->AddVertexBuffer(cubeVertexBuffer);
+    m_solidBlocksVAO->SetIndexBuffer(cubeIndexBuffer);
+    m_solidBlocksVAO->Unbind();
+
     m_cubeModelMatrix = glm::mat4(1.0f);
     m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 2.0f));
     m_cubeModelMatrix = glm::scale(m_cubeModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
@@ -315,9 +321,16 @@ void ExamApplication::RenderSolidBlocks()
 
     m_solidBlocksShaderProgram->Bind();
     m_solidBlocksVAO->Bind();
+    
+    // Temporary just use one block for testing
+    glm::mat4 solidBlockModelMatrix = glm::mat4(1.0f);
+    solidBlockModelMatrix = glm::translate(solidBlockModelMatrix, m_solidBlocks[0].worldCoordinate);
+    solidBlockModelMatrix = glm::scale(solidBlockModelMatrix, glm::vec3(0.5f, 0.5, 0.5f));
 
     m_solidBlocksShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
+    m_solidBlocksShaderProgram->UploadUniformMat4("u_solidBlockModelMatrix", solidBlockModelMatrix);
     m_solidBlocksShaderProgram->UploadUniformFloat3("u_blockColor", m_solidBlocks[0].color);
+    RenderCommands::DrawIndex(m_solidBlocksVAO, GL_TRIANGLES);
 }
 
 void ExamApplication::MoveActiveCube()
@@ -328,15 +341,20 @@ void ExamApplication::MoveActiveCube()
         m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
         m_activeCubeLastMoveTime = time;
     }
+    if (m_activeCubeGridPos[2] == 9){
+        MakeActiveCubeSolid();
+    }
 }
 
 void ExamApplication::MakeActiveCubeSolid()
 {
     SolidBlock solidBlock;
-    // Copy the grid position to the new solid block
-    solidBlock.gridPosition = m_activeCubeGridPos;
+    // Copy the grid coordinate from the active cube
+    solidBlock.gridCoordinate = m_activeCubeGridPos;
+    // Get the world coordinate to the new solid block by extracting it from the model matrix
+    solidBlock.worldCoordinate = glm::vec3(m_cubeModelMatrix[3]);
     // Get color for block based on z position
-    solidBlock.color = GetColorForSolidBlock(solidBlock.gridPosition[2]);
+    solidBlock.color = GetColorForSolidBlock(solidBlock.gridCoordinate[2]);
     // Add the solid block to the vector of solid blocks
     m_solidBlocks.push_back(solidBlock);
 }
