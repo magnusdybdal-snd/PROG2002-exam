@@ -45,13 +45,8 @@ private:
     bool m_textureEnabled = false;
 
     // ===== ACTIVE CUBE DYNAMIC VARIABLES =====
-<<<<<<< Updated upstream
-    int m_activeCubeGridPosZ = 0;
-    float m_activeCubeLastMoveTime = 0;
-=======
     glm::ivec3 m_activeCubeGridPos = glm::ivec3(2.0f, 0.0f, 0.0f); // Starting position in the tube
     float m_activeCubeLastMoveTime = 0; // Keeps track of when to automatically move inwards
->>>>>>> Stashed changes
 
     // ===== SMART POINTERS =====
     std::shared_ptr<VertexArray> m_activeCubeVAO;
