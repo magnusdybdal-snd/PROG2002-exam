@@ -18,8 +18,8 @@ add_custom_command(
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-    ${CMAKE_CURRENT_SOURCE_DIR}/resources/textures/cube_texture-modified.jpg
-    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources/textures/cube_texture-modified.jpg)
+    ${CMAKE_CURRENT_SOURCE_DIR}/resources/textures/block_texture.png
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources/textures/block_texture.png)
 
  target_compile_definitions(${PROJECT_NAME} PRIVATE
      TEXTURES_DIR="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources/textures/")

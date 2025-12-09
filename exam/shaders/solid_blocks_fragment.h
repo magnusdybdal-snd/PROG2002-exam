@@ -22,11 +22,8 @@ void main()
     if(u_textureEnabled == 0) {
         fragColor = vec4(u_blockColor, 1.0);
     } else {
-        fragColor = mix(vec4(u_blockColor, 1.0), textureColor, 0.4); 
+        fragColor = mix(vec4(u_blockColor, 1.0), textureColor, 0.3); 
     }
-
-
-
 }
 )";
 

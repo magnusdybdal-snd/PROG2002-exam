@@ -215,7 +215,7 @@ void ExamApplication::InitializeTextures()
 {
     auto textureManager = TextureManager::GetInstance();
     textureManager->LoadTexture2D("wallTexture", std::string(TEXTURES_DIR) + "wall_texture.jpeg", 0);
-    textureManager->LoadCubeMap("cubeTexture", std::string(TEXTURES_DIR) + "cube_texture-modified.jpg", 1);
+    textureManager->LoadCubeMap("cubeTexture", std::string(TEXTURES_DIR) + "block_texture.png", 1);
 }
 
 void ExamApplication::HandleInput()
