@@ -98,7 +98,8 @@ unsigned ExamApplication::Run()
 void ExamApplication::InitializeTunnel()
 {
     auto bufferLayout = BufferLayout({
-        { ShaderDataType::Float2, "position" }
+        { ShaderDataType::Float2, "position" },
+        { ShaderDataType::Float2, "tCoords" }
     });
 
     // Create 5x5 grid for the back wall
@@ -116,7 +117,7 @@ void ExamApplication::InitializeTunnel()
     m_backWallVAO->Unbind();
 
     // Create 5x10 grid for the side walls
-    auto tunnelVertices = GeometricTools::UnitGridGeometry2D<5,10>();
+    auto tunnelVertices = GeometricTools::UnitGridGeometry2DWTCoords<5,10>();
     auto tunnelIndices = GeometricTools::UnitGridTopologyTriangles<5,10>();
     
     auto tunnelVertexBuffer = std::make_shared<VertexBuffer>(tunnelVertices.data(), tunnelVertices.size() * sizeof(float));
@@ -208,6 +209,12 @@ void ExamApplication::InitializeShaders()
     m_solidBlocksShaderProgram = std::make_unique<Shader>(
         solidBlocksVertexShaderSrc.c_str(), solidBlocksFragmentShaderSrc.c_str()
     );
+}
+
+void ExamApplication::InitializeTextures()
+{
+    auto textureManager = TextureManager::GetInstance();
+    textureManager->LoadTexture2D("wallTexture", std::string(TEXTURES_DIR) + "wall_texture.jpg", 0);
 }
 
 void ExamApplication::HandleInput()
