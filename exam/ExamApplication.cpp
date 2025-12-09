@@ -358,13 +358,21 @@ void ExamApplication::RespawnActiveBlock()
     m_cubeModelMatrix = glm::scale(m_cubeModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
 }
 
-bool ExamApplication::ShouldBecomeSolid(int zPos)
+bool ExamApplication::ShouldBecomeSolid(glm::ivec3 position)
 {
+    // We only check the position ahead for becoming solid
+    auto positionToCheck = position + glm::ivec3(0, 0, 1);
+    // If we are at end of tunnel, return true
+    if (positionToCheck[2] > 9) {
+        return true;
+    }
+    // Go trough all solid blocks and check if we will collide on next z move
     for (const auto& block : m_solidBlocks) {
-        if (zPos == block.gridCoordinate[2]) {
+        if (positionToCheck == block.gridCoordinate) {
             return true;
         }
     }
+    // No collision ahead of us
     return false;
 }
 
