@@ -28,6 +28,11 @@ public:
 
 private:
 
+    struct SolidBlock {
+        glm::vec3 gridPosition;     // Grid coordinates in tunnel
+        glm::vec3 color;            // Color (based on z coordinate)
+    };
+
     // ===== CAMERA CONSTANTS =====
     static constexpr float CAMERA_FOV = 60.0f;              // degrees
     static constexpr float CAMERA_WIDTH = 1024.0f;
@@ -40,13 +45,18 @@ private:
     bool m_textureEnabled = false;
 
     // ===== ACTIVE CUBE DYNAMIC VARIABLES =====
+<<<<<<< Updated upstream
     int m_activeCubeGridPosZ = 0;
     float m_activeCubeLastMoveTime = 0;
+=======
+    glm::ivec3 m_activeCubeGridPos = glm::ivec3(2.0f, 0.0f, 0.0f); // Starting position in the tube
+    float m_activeCubeLastMoveTime = 0; // Keeps track of when to automatically move inwards
+>>>>>>> Stashed changes
 
     // ===== SMART POINTERS =====
+    std::shared_ptr<VertexArray> m_activeCubeVAO;
     std::shared_ptr<VertexArray> m_backWallVAO;
     std::shared_ptr<VertexArray> m_tunnelVAO;
-    std::shared_ptr<VertexArray> m_activeCubeVAO;
     std::unique_ptr<Shader> m_tunnelShaderProgram;
     std::unique_ptr<Shader> m_activeCubeShaderProgram;
     std::unique_ptr<PerspectiveCamera> m_camera;
@@ -73,6 +83,8 @@ private:
     void InputHandleBlockMovement(GLFWwindow *window);
 
     void MoveActiveCube();
+
+
 
 };
 #endif // AssignmentApplication_H_

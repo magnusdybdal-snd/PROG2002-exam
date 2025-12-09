@@ -216,40 +216,71 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow * window)
     bool keyIsPressed = false;
 
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+<<<<<<< Updated upstream
         if (!keyWasPressed) {
+=======
+        if (!keyWasPressed && m_activeCubeGridPos[0] < 4) {
+            m_activeCubeGridPos[0]++;
+>>>>>>> Stashed changes
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(1.0f, 0.0f, 0.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+<<<<<<< Updated upstream
         if (!keyWasPressed) {
+=======
+        if (!keyWasPressed && m_activeCubeGridPos[0] > 0) {
+            m_activeCubeGridPos[0]--;
+>>>>>>> Stashed changes
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(-1.0f, 0.0f, 0.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+<<<<<<< Updated upstream
         if (!keyWasPressed) {
+=======
+        if (!keyWasPressed && m_activeCubeGridPos[1] < 4) {
+            m_activeCubeGridPos[1]++;
+>>>>>>> Stashed changes
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 1.0f, 0.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+<<<<<<< Updated upstream
         if (!keyWasPressed) {
+=======
+        if (!keyWasPressed && m_activeCubeGridPos[1] > 0) {
+            m_activeCubeGridPos[1]--;
+>>>>>>> Stashed changes
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 0.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
+<<<<<<< Updated upstream
         if (!keyWasPressed) {
             m_activeCubeGridPosZ ++;
+=======
+        if (!keyWasPressed && m_activeCubeGridPos[2] < 9) {
+            m_activeCubeGridPos[2] ++;
+>>>>>>> Stashed changes
             m_activeCubeLastMoveTime = glfwGetTime();
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+<<<<<<< Updated upstream
         if (!keyWasPressed) {
             auto distance = 9 - m_activeCubeGridPosZ;
+=======
+        if (!keyWasPressed && m_activeCubeGridPos[2] < 9) {
+            auto distance = 9 - m_activeCubeGridPos[2];
+            m_activeCubeGridPos[2] += distance; 
+>>>>>>> Stashed changes
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -static_cast<float>(distance)));
         }
         keyIsPressed = true;
@@ -301,8 +332,13 @@ void ExamApplication::RenderActiveCube()
 void ExamApplication::MoveActiveCube()
 {
     int time = glfwGetTime();
+<<<<<<< Updated upstream
     if (time - m_activeCubeLastMoveTime >= 2.0f) {
         m_activeCubeGridPosZ ++;
+=======
+    if (time - m_activeCubeLastMoveTime >= 2.0f && m_activeCubeGridPos[2] < 9) {
+        m_activeCubeGridPos[2] ++;
+>>>>>>> Stashed changes
         m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
         m_activeCubeLastMoveTime = time;
     }
