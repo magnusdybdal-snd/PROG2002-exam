@@ -274,7 +274,7 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow * window)
                     m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -static_cast<float>(i)));
                     m_activeCubeGridPos[2] += i;
                     MakeActiveCubeSolid();
-                    continue; 
+                    break;
                 }
             }
         }
