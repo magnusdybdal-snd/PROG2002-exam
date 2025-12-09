@@ -7,6 +7,8 @@
 #include "shaders/tunnel_fragment.h"
 #include "shaders/active_cube_vertex.h"
 #include "shaders/active_cube_fragment.h"
+#include "shaders/solid_cube_vertex.h"
+#include "shaders/solid_cube_fragment.h"
 
 /**
  * Constructor for ExamApplication
@@ -301,6 +303,18 @@ void ExamApplication::RenderActiveCube()
     m_activeCubeShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
     m_activeCubeShaderProgram->UploadUniformMat4("u_activeCubeModelMatrix", m_cubeModelMatrix);
     RenderCommands::DrawIndex(m_activeCubeVAO, GL_TRIANGLES);
+}
+
+void ExamApplication::RenderSolidBlocks()
+{
+    if (m_solidBlocks.size() == 0)
+        return;
+
+    m_solidBlocksShaderProgram->Bind();
+    m_solidBlocksVAO->Bind();
+
+    m_solidBlocksShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
+    m_solidBlocksShaderProgram->UploadUniformFloat3("u_blockColor", m_solidBlocks[0].color);
 }
 
 void ExamApplication::MoveActiveCube()

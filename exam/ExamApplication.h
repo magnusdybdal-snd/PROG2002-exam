@@ -44,19 +44,21 @@ private:
     // ===== DYNAMIC MEMBER VARIABLES =====
     bool m_textureEnabled = false;
 
-    // ===== ACTIVE CUBE DYNAMIC VARIABLES =====
+    // ===== ACTIVE BLOCK =====
+    float m_activeCubeLastMoveTime = 0;                            // Keeps track of when to automatically move inwards
     glm::ivec3 m_activeCubeGridPos = glm::ivec3(2.0f, 0.0f, 0.0f); // Starting position in the tube
-    float m_activeCubeLastMoveTime = 0; // Keeps track of when to automatically move inwards
+    std::shared_ptr<VertexArray> m_activeCubeVAO;
+    std::unique_ptr<Shader> m_activeCubeShaderProgram;
 
     // ===== SOLID BLOCKS =====
-    std::vector<SolidBlock> m_solidBlocks;
+    std::vector<SolidBlock> m_solidBlocks;                  // Holds all solid blocks
+    std::unique_ptr<Shader> m_solidBlocksShaderProgram;
+    std::shared_ptr<VertexArray> m_solidBlocksVAO;
 
     // ===== SMART POINTERS =====
-    std::shared_ptr<VertexArray> m_activeCubeVAO;
     std::shared_ptr<VertexArray> m_backWallVAO;
     std::shared_ptr<VertexArray> m_tunnelVAO;
     std::unique_ptr<Shader> m_tunnelShaderProgram;
-    std::unique_ptr<Shader> m_activeCubeShaderProgram;
     std::unique_ptr<PerspectiveCamera> m_camera;
 
     // ===== MODEL MATRICES =====
