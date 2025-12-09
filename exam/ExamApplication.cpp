@@ -267,7 +267,7 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow *window)
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        if (!keyWasPressed && m_activeCubeGridPos[1] > 0) {
+        if (!keyWasPressed && !IsOccupied(m_activeCubeGridPos + glm::ivec3(0, -1, 0))) {
             m_activeCubeGridPos[1]--;
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 0.0f));
         }
@@ -419,7 +419,7 @@ bool ExamApplication::IsOccupied(glm::ivec3 gridCoordinate)
 {
     // Check edges of tunnel
     if (gridCoordinate[0] < 0 || gridCoordinate[0] > 4 || 
-        gridCoordinate[1] < 0 || gridCoordinate[0] > 4 ||
+        gridCoordinate[1] < 0 || gridCoordinate[1] > 4 ||
         gridCoordinate[2] > 9) {
             return true;
         }
