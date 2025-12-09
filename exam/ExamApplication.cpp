@@ -319,7 +319,12 @@ void ExamApplication::MakeActiveCubeSolid()
     // Copy the grid position to the new solid block
     solidBlock.gridPosition = m_activeCubeGridPos;
     // Get color for block based on z position
-    solidBlock.color = getColorForSolidBlock(solidBlock.gridPosition[2]);
+    solidBlock.color = GetColorForSolidBlock(solidBlock.gridPosition[2]);
     // Add the solid block to the vector of solid blocks
     m_solidBlocks.push_back(solidBlock);
+}
+
+glm::vec3 ExamApplication::GetColorForSolidBlock(int zPos)
+{
+    if (zPos == ) 
 }
