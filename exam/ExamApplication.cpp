@@ -83,6 +83,7 @@ unsigned ExamApplication::Run()
 
         RenderTunnel();
         RenderActiveCube();
+        MoveActiveCube();
         HandleInput();
 
         glfwSwapBuffers(window);
@@ -238,6 +239,21 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow * window)
         }
         keyIsPressed = true;
     }
+    else if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
+        if (!keyWasPressed) {
+            m_activeCubeGridPosZ ++;
+            m_activeCubeLastMoveTime = glfwGetTime();
+            m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
+        }
+        keyIsPressed = true;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        if (!keyWasPressed) {
+            auto distance = 9 - m_activeCubeGridPosZ;
+            m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -static_cast<float>(distance)));
+        }
+        keyIsPressed = true;
+    }
 
     keyWasPressed = keyIsPressed;
 }
@@ -280,4 +296,14 @@ void ExamApplication::RenderActiveCube()
     m_activeCubeShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
     m_activeCubeShaderProgram->UploadUniformMat4("u_activeCubeModelMatrix", m_cubeModelMatrix);
     RenderCommands::DrawIndex(m_activeCubeVAO, GL_TRIANGLES);
+}
+
+void ExamApplication::MoveActiveCube()
+{
+    int time = glfwGetTime();
+    if (time - m_activeCubeLastMoveTime >= 2.0f) {
+        m_activeCubeGridPosZ ++;
+        m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
+        m_activeCubeLastMoveTime = time;
+    }
 }

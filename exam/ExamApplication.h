@@ -39,6 +39,10 @@ private:
     // ===== DYNAMIC MEMBER VARIABLES =====
     bool m_textureEnabled = false;
 
+    // ===== ACTIVE CUBE DYNAMIC VARIABLES =====
+    int m_activeCubeGridPosZ = 0;
+    float m_activeCubeLastMoveTime = 0;
+
     // ===== SMART POINTERS =====
     std::shared_ptr<VertexArray> m_backWallVAO;
     std::shared_ptr<VertexArray> m_tunnelVAO;
@@ -67,6 +71,8 @@ private:
     // ===== Input =====
     void HandleInput();
     void InputHandleBlockMovement(GLFWwindow *window);
+
+    void MoveActiveCube();
 
 };
 #endif // AssignmentApplication_H_
