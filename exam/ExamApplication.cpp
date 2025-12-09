@@ -83,8 +83,8 @@ unsigned ExamApplication::Run()
         glfwPollEvents();
 
         RenderTunnel();
-        RenderActiveCube();
         RenderSolidBlocks();
+        RenderActiveCube();
         MoveActiveCube();
         HandleInput();
 
@@ -259,18 +259,27 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow * window)
             m_activeCubeGridPos[2] ++;
             m_activeCubeLastMoveTime = glfwGetTime();
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
+        } else {
+            if(!keyWasPressed && ShouldBecomeSolid(m_activeCubeGridPos))
+                MakeActiveCubeSolid();
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        if (!keyWasPressed && m_activeCubeGridPos[2] < 9) {
-            auto distance = 9 - m_activeCubeGridPos[2];
-            m_activeCubeGridPos[2] += distance; 
-            m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -static_cast<float>(distance)));
+        if (!keyWasPressed) {
+            auto distance = 10 - m_activeCubeGridPos[2];
+            for (int i = 0; i < distance; i++) {
+                auto should = ShouldBecomeSolid(m_activeCubeGridPos + glm::ivec3(0, 0, i));
+                if (should) {
+                    m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -static_cast<float>(i)));
+                    m_activeCubeGridPos[2] += i;
+                    MakeActiveCubeSolid();
+                    continue; 
+                }
+            }
         }
         keyIsPressed = true;
     }
-
     keyWasPressed = keyIsPressed;
 }
 
