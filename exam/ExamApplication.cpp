@@ -326,5 +326,28 @@ void ExamApplication::MakeActiveCubeSolid()
 
 glm::vec3 ExamApplication::GetColorForSolidBlock(int zPos)
 {
-    if (zPos == ) 
+    auto colorInt = zPos % 5;
+    glm::vec3 color;
+    switch (colorInt)
+    {
+    case 0:
+        color = glm::vec3(0.8, 0.1, 0.1);
+        break;
+    case 1:
+        color = glm::vec3(0.1, 0.8, 0.1);
+        break;
+    case 2:
+        color = glm::vec3(0.1, 0.1, 0.8);
+        break;
+    case 3:
+        color = glm::vec3(0.8, 0.8, 0.1); // Yellow
+        break;
+    case 4:
+        color = glm::vec3(0.1, 0.8, 0.8); // Cyan
+        break;
+    default:
+        color = glm::vec3(1.0, 1.0, 1.0); // Fallback, white for now
+        break;
+    }
+    return color;
 }
