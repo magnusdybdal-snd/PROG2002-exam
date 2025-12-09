@@ -64,5 +64,9 @@ private:
     void RenderTunnel();
     void RenderActiveCube();
 
+    // ===== Input =====
+    void HandleInput();
+    void InputHandleBlockMovement(GLFWwindow *window);
+
 };
 #endif // AssignmentApplication_H_
