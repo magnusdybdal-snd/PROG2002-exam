@@ -7,6 +7,8 @@
 #include "shaders/tunnel_fragment.h"
 #include "shaders/active_cube_vertex.h"
 #include "shaders/active_cube_fragment.h"
+#include "shaders/solid_blocks_vertex.h"
+#include "shaders/solid_blocks_fragment.h"
 
 /**
  * Constructor for ExamApplication
@@ -80,9 +82,9 @@ unsigned ExamApplication::Run()
         // Process events
         glfwPollEvents();
 
-
         RenderTunnel();
         RenderActiveCube();
+        RenderSolidBlocks();
         MoveActiveCube();
         HandleInput();
 
@@ -181,6 +183,12 @@ void ExamApplication::InitializeCube()
     m_activeCubeVAO->SetIndexBuffer(cubeIndexBuffer);
     m_activeCubeVAO->Unbind();
 
+    // Initialize solid blocks vao with the same geometry
+    m_solidBlocksVAO = std::make_shared<VertexArray>();
+    m_solidBlocksVAO->AddVertexBuffer(cubeVertexBuffer);
+    m_solidBlocksVAO->SetIndexBuffer(cubeIndexBuffer);
+    m_solidBlocksVAO->Unbind();
+
     m_cubeModelMatrix = glm::mat4(1.0f);
     m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 2.0f));
     m_cubeModelMatrix = glm::scale(m_cubeModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
@@ -196,6 +204,9 @@ void ExamApplication::InitializeShaders()
     );
     m_activeCubeShaderProgram = std::make_unique<Shader>(
         activeCubeVertexShaderSrc.c_str(), activeCubeFragmentShaderSrc.c_str()
+    );
+    m_solidBlocksShaderProgram = std::make_unique<Shader>(
+        solidBlocksVertexShaderSrc.c_str(), solidBlocksFragmentShaderSrc.c_str()
     );
 }
 
@@ -216,40 +227,45 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow * window)
     bool keyIsPressed = false;
 
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-        if (!keyWasPressed) {
+        if (!keyWasPressed && m_activeCubeGridPos[0] < 4) {
+            m_activeCubeGridPos[0]++;
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(1.0f, 0.0f, 0.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-        if (!keyWasPressed) {
+        if (!keyWasPressed && m_activeCubeGridPos[0] > 0) {
+            m_activeCubeGridPos[0]--;
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(-1.0f, 0.0f, 0.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-        if (!keyWasPressed) {
+        if (!keyWasPressed && m_activeCubeGridPos[1] < 4) {
+            m_activeCubeGridPos[1]++;
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 1.0f, 0.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        if (!keyWasPressed) {
+        if (!keyWasPressed && m_activeCubeGridPos[1] > 0) {
+            m_activeCubeGridPos[1]--;
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 0.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-        if (!keyWasPressed) {
-            m_activeCubeGridPosZ ++;
+        if (!keyWasPressed && m_activeCubeGridPos[2] < 9) {
+            m_activeCubeGridPos[2] ++;
             m_activeCubeLastMoveTime = glfwGetTime();
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        if (!keyWasPressed) {
-            auto distance = 9 - m_activeCubeGridPosZ;
+        if (!keyWasPressed && m_activeCubeGridPos[2] < 9) {
+            auto distance = 9 - m_activeCubeGridPos[2];
+            m_activeCubeGridPos[2] += distance; 
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -static_cast<float>(distance)));
         }
         keyIsPressed = true;
@@ -298,12 +314,75 @@ void ExamApplication::RenderActiveCube()
     RenderCommands::DrawIndex(m_activeCubeVAO, GL_TRIANGLES);
 }
 
+void ExamApplication::RenderSolidBlocks()
+{
+    if (m_solidBlocks.size() == 0)
+        return;
+
+    m_solidBlocksShaderProgram->Bind();
+    m_solidBlocksVAO->Bind();
+    
+    // Temporary just use one block for testing
+    glm::mat4 solidBlockModelMatrix = glm::mat4(1.0f);
+    solidBlockModelMatrix = glm::translate(solidBlockModelMatrix, m_solidBlocks[0].worldCoordinate);
+    solidBlockModelMatrix = glm::scale(solidBlockModelMatrix, glm::vec3(0.5f, 0.5, 0.5f));
+
+    m_solidBlocksShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
+    m_solidBlocksShaderProgram->UploadUniformMat4("u_solidBlockModelMatrix", solidBlockModelMatrix);
+    m_solidBlocksShaderProgram->UploadUniformFloat3("u_blockColor", m_solidBlocks[0].color);
+    RenderCommands::DrawIndex(m_solidBlocksVAO, GL_TRIANGLES);
+}
+
 void ExamApplication::MoveActiveCube()
 {
     int time = glfwGetTime();
-    if (time - m_activeCubeLastMoveTime >= 2.0f) {
-        m_activeCubeGridPosZ ++;
+    if (time - m_activeCubeLastMoveTime >= 2.0f && m_activeCubeGridPos[2] < 9) {
+        m_activeCubeGridPos[2] ++;
         m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
         m_activeCubeLastMoveTime = time;
     }
+    if (m_activeCubeGridPos[2] == 9){
+        MakeActiveCubeSolid();
+    }
+}
+
+void ExamApplication::MakeActiveCubeSolid()
+{
+    SolidBlock solidBlock;
+    // Copy the grid coordinate from the active cube
+    solidBlock.gridCoordinate = m_activeCubeGridPos;
+    // Get the world coordinate to the new solid block by extracting it from the model matrix
+    solidBlock.worldCoordinate = glm::vec3(m_cubeModelMatrix[3]);
+    // Get color for block based on z position
+    solidBlock.color = GetColorForSolidBlock(solidBlock.gridCoordinate[2]);
+    // Add the solid block to the vector of solid blocks
+    m_solidBlocks.push_back(solidBlock);
+}
+
+glm::vec3 ExamApplication::GetColorForSolidBlock(int zPos)
+{
+    auto colorInt = zPos % 5;
+    glm::vec3 color;
+    switch (colorInt)
+    {
+    case 0:
+        color = glm::vec3(0.8, 0.1, 0.1);
+        break;
+    case 1:
+        color = glm::vec3(0.1, 0.8, 0.1);
+        break;
+    case 2:
+        color = glm::vec3(0.1, 0.1, 0.8);
+        break;
+    case 3:
+        color = glm::vec3(0.8, 0.8, 0.1); // Yellow
+        break;
+    case 4:
+        color = glm::vec3(0.1, 0.8, 0.8); // Cyan
+        break;
+    default:
+        color = glm::vec3(1.0, 1.0, 1.0); // Fallback, white for now
+        break;
+    }
+    return color;
 }

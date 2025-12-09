@@ -28,6 +28,12 @@ public:
 
 private:
 
+    struct SolidBlock {
+        glm::ivec3 gridCoordinate;      // Grid coordinates in tunnel
+        glm::vec3  worldCoordinate;     // World coordinate
+        glm::vec3  color;               // Color (based on grid coordinate)
+    };
+
     // ===== CAMERA CONSTANTS =====
     static constexpr float CAMERA_FOV = 60.0f;              // degrees
     static constexpr float CAMERA_WIDTH = 1024.0f;
@@ -39,16 +45,21 @@ private:
     // ===== DYNAMIC MEMBER VARIABLES =====
     bool m_textureEnabled = false;
 
-    // ===== ACTIVE CUBE DYNAMIC VARIABLES =====
-    int m_activeCubeGridPosZ = 0;
-    float m_activeCubeLastMoveTime = 0;
+    // ===== ACTIVE BLOCK =====
+    float m_activeCubeLastMoveTime = 0;                     // Keeps track of when to automatically move inwards
+    glm::ivec3 m_activeCubeGridPos = glm::ivec3(2, 0, 0);   // Starting position in the tube
+    std::shared_ptr<VertexArray> m_activeCubeVAO;
+    std::unique_ptr<Shader> m_activeCubeShaderProgram;
+
+    // ===== SOLID BLOCKS =====
+    std::vector<SolidBlock> m_solidBlocks;                  // Holds all solid blocks
+    std::unique_ptr<Shader> m_solidBlocksShaderProgram;
+    std::shared_ptr<VertexArray> m_solidBlocksVAO;
 
     // ===== SMART POINTERS =====
     std::shared_ptr<VertexArray> m_backWallVAO;
     std::shared_ptr<VertexArray> m_tunnelVAO;
-    std::shared_ptr<VertexArray> m_activeCubeVAO;
     std::unique_ptr<Shader> m_tunnelShaderProgram;
-    std::unique_ptr<Shader> m_activeCubeShaderProgram;
     std::unique_ptr<PerspectiveCamera> m_camera;
 
     // ===== MODEL MATRICES =====
@@ -67,12 +78,17 @@ private:
     // ===== RENDERING =====
     void RenderTunnel();
     void RenderActiveCube();
+    void RenderSolidBlocks();
 
     // ===== Input =====
     void HandleInput();
     void InputHandleBlockMovement(GLFWwindow *window);
 
     void MoveActiveCube();
+    void MakeActiveCubeSolid();
+    glm::vec3 GetColorForSolidBlock(int zPos);
+
+
 
 };
 #endif // AssignmentApplication_H_
