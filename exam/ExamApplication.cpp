@@ -367,22 +367,14 @@ void ExamApplication::RespawnActiveBlock()
     m_cubeModelMatrix = glm::scale(m_cubeModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
 }
 
-bool ExamApplication::ShouldBecomeSolid(glm::ivec3 position)
+bool ExamApplication::ShouldBecomeSolid(glm::ivec3 gridCoordinate)
 {
-    // We only check the position ahead for becoming solid
-    auto positionToCheck = position + glm::ivec3(0, 0, 1);
     // If we are at end of tunnel, return true
-    if (positionToCheck[2] > 9) {
+    if (gridCoordinate[2] >= 9) {
         return true;
     }
-    // Go trough all solid blocks and check if we will collide on next z move
-    for (const auto& block : m_solidBlocks) {
-        if (positionToCheck == block.gridCoordinate) {
-            return true;
-        }
-    }
-    // No collision ahead of us
-    return false;
+    // Check one gridspace ahead of us
+    return IsOccupied(gridCoordinate + glm::ivec3(0, 0, 1));
 }
 
 void ExamApplication::MakeActiveCubeSolid()
@@ -401,6 +393,16 @@ void ExamApplication::MakeActiveCubeSolid()
 
 }
 
+bool ExamApplication::IsOccupied(glm::ivec3 gridCoordinate)
+{
+    for (const auto& block : m_solidBlocks) {
+        if (block.gridCoordinate == gridCoordinate) {
+            return true;
+        }
+    }
+    return false;
+}
+
 glm::vec3 ExamApplication::GetColorForSolidBlock(int zPos)
 {
     auto colorInt = zPos % 5;
@@ -408,19 +410,19 @@ glm::vec3 ExamApplication::GetColorForSolidBlock(int zPos)
     switch (colorInt)
     {
     case 0:
-        color = glm::vec3(0.8, 0.1, 0.1);
+        color = glm::vec3(0.8, 0.2, 0.2); // Red
         break;
     case 1:
-        color = glm::vec3(0.1, 0.8, 0.1);
+        color = glm::vec3(0.2, 0.8, 0.2); // Green
         break;
     case 2:
-        color = glm::vec3(0.1, 0.1, 0.8);
+        color = glm::vec3(0.8, 0.2, 0.8); // Magenta
         break;
     case 3:
-        color = glm::vec3(0.8, 0.8, 0.1); // Yellow
+        color = glm::vec3(0.8, 0.8, 0.2); // Yellow
         break;
     case 4:
-        color = glm::vec3(0.1, 0.8, 0.8); // Cyan
+        color = glm::vec3(0.2, 0.8, 0.8); // Cyan
         break;
     default:
         color = glm::vec3(1.0, 1.0, 1.0); // Fallback, white for now

@@ -89,6 +89,7 @@ private:
     glm::vec3 GetColorForSolidBlock(int zPos);
     void RespawnActiveBlock();
     bool ShouldBecomeSolid(glm::ivec3 position);
+    bool IsOccupied(glm::ivec3 gridCoordinate);
 
 
 
