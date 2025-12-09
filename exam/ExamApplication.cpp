@@ -322,15 +322,17 @@ void ExamApplication::RenderSolidBlocks()
     m_solidBlocksShaderProgram->Bind();
     m_solidBlocksVAO->Bind();
     
-    // Temporary just use one block for testing
-    glm::mat4 solidBlockModelMatrix = glm::mat4(1.0f);
-    solidBlockModelMatrix = glm::translate(solidBlockModelMatrix, m_solidBlocks[0].worldCoordinate);
-    solidBlockModelMatrix = glm::scale(solidBlockModelMatrix, glm::vec3(0.5f, 0.5, 0.5f));
-
     m_solidBlocksShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
-    m_solidBlocksShaderProgram->UploadUniformMat4("u_solidBlockModelMatrix", solidBlockModelMatrix);
-    m_solidBlocksShaderProgram->UploadUniformFloat3("u_blockColor", m_solidBlocks[0].color);
-    RenderCommands::DrawIndex(m_solidBlocksVAO, GL_TRIANGLES);
+
+    for (const auto& block : m_solidBlocks){
+        // Temporary draw call for each one
+        glm::mat4 solidBlockModelMatrix = glm::mat4(1.0f);
+        solidBlockModelMatrix = glm::translate(solidBlockModelMatrix, block.worldCoordinate);
+        solidBlockModelMatrix = glm::scale(solidBlockModelMatrix, glm::vec3(0.5f, 0.5, 0.5f));
+        m_solidBlocksShaderProgram->UploadUniformMat4("u_solidBlockModelMatrix", solidBlockModelMatrix);
+        m_solidBlocksShaderProgram->UploadUniformFloat3("u_blockColor", block.color);
+        RenderCommands::DrawIndex(m_solidBlocksVAO, GL_TRIANGLES);
+    } 
 }
 
 void ExamApplication::MoveActiveCube()
