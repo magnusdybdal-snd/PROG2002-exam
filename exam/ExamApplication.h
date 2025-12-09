@@ -87,6 +87,7 @@ private:
     void MoveActiveCube();
     void MakeActiveCubeSolid();
     glm::vec3 GetColorForSolidBlock(int zPos);
+    void RespawnActiveBlock();
 
 
 
