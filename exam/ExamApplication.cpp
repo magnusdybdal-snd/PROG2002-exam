@@ -248,7 +248,7 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow * window)
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        if (!keyWasPressed && !IsOccupied(m_activeCubeGridPos + glm::ivec3(0, -1, 0))) {
+        if (!keyWasPressed && m_activeCubeGridPos[1] > 0) {
             m_activeCubeGridPos[1]--;
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 0.0f));
         }
@@ -267,8 +267,9 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow * window)
     }
     else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
         if (!keyWasPressed) {
-            auto distance = 10 - m_activeCubeGridPos[2];
-            for (int i = 0; i < distance; i++) {
+            auto distance = 9 - m_activeCubeGridPos[2];
+            m_activeCubeLastMoveTime = glfwGetTime();
+            for (int i = 0; i <= distance; i++) {
                 auto should = ShouldBecomeSolid(m_activeCubeGridPos + glm::ivec3(0, 0, i));
                 if (should) {
                     m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -static_cast<float>(i)));
@@ -346,7 +347,7 @@ void ExamApplication::RenderSolidBlocks()
 
 void ExamApplication::MoveActiveCube()
 {
-    int time = glfwGetTime();
+    double time = glfwGetTime();
     if (time - m_activeCubeLastMoveTime >= 2.0f && !ShouldBecomeSolid(m_activeCubeGridPos)) {
         m_activeCubeGridPos[2] ++;
         m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
@@ -398,7 +399,7 @@ bool ExamApplication::IsOccupied(glm::ivec3 gridCoordinate)
     // Check edges of tunnel
     if (gridCoordinate[0] < 0 || gridCoordinate[0] > 4 || 
         gridCoordinate[1] < 0 || gridCoordinate[0] > 4 ||
-        gridCoordinate[2] >= 9) {
+        gridCoordinate[2] > 9) {
             return true;
         }
     // Go trough all solid blocks and check for collision

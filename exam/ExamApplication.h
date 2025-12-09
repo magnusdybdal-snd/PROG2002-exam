@@ -46,7 +46,7 @@ private:
     bool m_textureEnabled = false;
 
     // ===== ACTIVE BLOCK =====
-    float m_activeCubeLastMoveTime = 0;                     // Keeps track of when to automatically move inwards
+    float m_activeCubeLastMoveTime = 0.0f;                     // Keeps track of when to automatically move inwards
     glm::ivec3 m_activeCubeGridPos = glm::ivec3(2, 0, 0);   // Starting position in the tube
     std::shared_ptr<VertexArray> m_activeCubeVAO;
     std::unique_ptr<Shader> m_activeCubeShaderProgram;
