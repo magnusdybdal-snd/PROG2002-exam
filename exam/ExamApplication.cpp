@@ -358,6 +358,16 @@ void ExamApplication::RespawnActiveBlock()
     m_cubeModelMatrix = glm::scale(m_cubeModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
 }
 
+bool ExamApplication::ShouldBecomeSolid(int zPos)
+{
+    for (const auto& block : m_solidBlocks) {
+        if (zPos == block.gridCoordinate[2]) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void ExamApplication::MakeActiveCubeSolid()
 {
     SolidBlock solidBlock;
