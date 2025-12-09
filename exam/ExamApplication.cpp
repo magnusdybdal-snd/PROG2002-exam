@@ -7,8 +7,8 @@
 #include "shaders/tunnel_fragment.h"
 #include "shaders/active_cube_vertex.h"
 #include "shaders/active_cube_fragment.h"
-#include "shaders/solid_cube_vertex.h"
-#include "shaders/solid_cube_fragment.h"
+#include "shaders/solid_blocks_vertex.h"
+#include "shaders/solid_blocks_fragment.h"
 
 /**
  * Constructor for ExamApplication
@@ -82,9 +82,9 @@ unsigned ExamApplication::Run()
         // Process events
         glfwPollEvents();
 
-
         RenderTunnel();
         RenderActiveCube();
+        RenderSolidBlocks();
         MoveActiveCube();
         HandleInput();
 
@@ -198,6 +198,9 @@ void ExamApplication::InitializeShaders()
     );
     m_activeCubeShaderProgram = std::make_unique<Shader>(
         activeCubeVertexShaderSrc.c_str(), activeCubeFragmentShaderSrc.c_str()
+    );
+    m_solidBlocksShaderProgram = std::make_unique<Shader>(
+        solidBlocksVertexShaderSrc.c_str(), solidBlocksFragmentShaderSrc.c_str()
     );
 }
 
