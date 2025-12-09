@@ -41,7 +41,7 @@ private:
 
     // ===== ACTIVE CUBE DYNAMIC VARIABLES =====
     int m_activeCubeGridPosZ = 0;
-    float m_activeCubeLastMoveTime = 2.0f;
+    float m_activeCubeLastMoveTime = 0;
 
     // ===== SMART POINTERS =====
     std::shared_ptr<VertexArray> m_backWallVAO;
