@@ -41,6 +41,7 @@ private:
 
     // ===== ACTIVE CUBE DYNAMIC VARIABLES =====
     int m_activeCubeGridPosZ = 0;
+    float m_activeCubeLastMoveTime = 2.0f;
 
     // ===== SMART POINTERS =====
     std::shared_ptr<VertexArray> m_backWallVAO;
@@ -70,6 +71,8 @@ private:
     // ===== Input =====
     void HandleInput();
     void InputHandleBlockMovement(GLFWwindow *window);
+
+    void MoveActiveCube();
 
 };
 #endif // AssignmentApplication_H_

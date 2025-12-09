@@ -83,6 +83,7 @@ unsigned ExamApplication::Run()
 
         RenderTunnel();
         RenderActiveCube();
+        MoveActiveCube();
         HandleInput();
 
         glfwSwapBuffers(window);
@@ -294,4 +295,14 @@ void ExamApplication::RenderActiveCube()
     m_activeCubeShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
     m_activeCubeShaderProgram->UploadUniformMat4("u_activeCubeModelMatrix", m_cubeModelMatrix);
     RenderCommands::DrawIndex(m_activeCubeVAO, GL_TRIANGLES);
+}
+
+void ExamApplication::MoveActiveCube()
+{
+    int time = glfwGetTime();
+    if (time - m_activeCubeLastMoveTime >= 2.0f) {
+        m_activeCubeGridPosZ ++;
+        m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
+        m_activeCubeLastMoveTime = time;
+    }
 }
