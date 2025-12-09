@@ -48,6 +48,9 @@ private:
     glm::ivec3 m_activeCubeGridPos = glm::ivec3(2.0f, 0.0f, 0.0f); // Starting position in the tube
     float m_activeCubeLastMoveTime = 0; // Keeps track of when to automatically move inwards
 
+    // ===== SOLID BLOCKS =====
+    std::vector<SolidBlock> m_solidBlocks;
+
     // ===== SMART POINTERS =====
     std::shared_ptr<VertexArray> m_activeCubeVAO;
     std::shared_ptr<VertexArray> m_backWallVAO;
@@ -78,6 +81,7 @@ private:
     void InputHandleBlockMovement(GLFWwindow *window);
 
     void MoveActiveCube();
+    void MakeActiveCubeSolid();
 
 
 
