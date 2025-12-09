@@ -255,7 +255,7 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow * window)
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-        if (!keyWasPressed && m_activeCubeGridPos[2] < 9) {
+        if (!keyWasPressed && !ShouldBecomeSolid(m_activeCubeGridPos)) {
             m_activeCubeGridPos[2] ++;
             m_activeCubeLastMoveTime = glfwGetTime();
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
@@ -338,12 +338,12 @@ void ExamApplication::RenderSolidBlocks()
 void ExamApplication::MoveActiveCube()
 {
     int time = glfwGetTime();
-    if (time - m_activeCubeLastMoveTime >= 2.0f && m_activeCubeGridPos[2] < 9) {
+    if (time - m_activeCubeLastMoveTime >= 2.0f && !ShouldBecomeSolid(m_activeCubeGridPos)) {
         m_activeCubeGridPos[2] ++;
         m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
         m_activeCubeLastMoveTime = time;
     }
-    if (m_activeCubeGridPos[2] == 9){
+    if (time - m_activeCubeLastMoveTime >= 2.0f && ShouldBecomeSolid(m_activeCubeGridPos)){
         MakeActiveCubeSolid();
     }
 }
