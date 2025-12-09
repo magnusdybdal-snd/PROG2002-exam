@@ -240,7 +240,15 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow * window)
     }
     else if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
         if (!keyWasPressed) {
+            m_activeCubeGridPosZ ++;
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
+        }
+        keyIsPressed = true;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        if (!keyWasPressed) {
+            auto distance = 9 - m_activeCubeGridPosZ;
+            m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -static_cast<float>(distance)));
         }
         keyIsPressed = true;
     }

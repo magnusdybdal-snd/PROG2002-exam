@@ -39,6 +39,9 @@ private:
     // ===== DYNAMIC MEMBER VARIABLES =====
     bool m_textureEnabled = false;
 
+    // ===== ACTIVE CUBE DYNAMIC VARIABLES =====
+    int m_activeCubeGridPosZ = 0;
+
     // ===== SMART POINTERS =====
     std::shared_ptr<VertexArray> m_backWallVAO;
     std::shared_ptr<VertexArray> m_tunnelVAO;
