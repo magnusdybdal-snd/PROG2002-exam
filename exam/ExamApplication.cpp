@@ -83,8 +83,8 @@ unsigned ExamApplication::Run()
         glfwPollEvents();
 
         RenderTunnel();
-        RenderActiveCube();
         RenderSolidBlocks();
+        RenderActiveCube();
         MoveActiveCube();
         HandleInput();
 
@@ -227,21 +227,21 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow * window)
     bool keyIsPressed = false;
 
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-        if (!keyWasPressed && m_activeCubeGridPos[0] < 4) {
+        if (!keyWasPressed && !IsOccupied(m_activeCubeGridPos + glm::ivec3(1, 0, 0))) {
             m_activeCubeGridPos[0]++;
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(1.0f, 0.0f, 0.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-        if (!keyWasPressed && m_activeCubeGridPos[0] > 0) {
+        if (!keyWasPressed && !IsOccupied(m_activeCubeGridPos + glm::ivec3(-1, 0, 0))) {
             m_activeCubeGridPos[0]--;
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(-1.0f, 0.0f, 0.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-        if (!keyWasPressed && m_activeCubeGridPos[1] < 4) {
+        if (!keyWasPressed && !IsOccupied(m_activeCubeGridPos + glm::ivec3(0, 1, 0))) {
             m_activeCubeGridPos[1]++;
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 1.0f, 0.0f));
         }
@@ -255,22 +255,32 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow * window)
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-        if (!keyWasPressed && m_activeCubeGridPos[2] < 9) {
+        if (!keyWasPressed && !ShouldBecomeSolid(m_activeCubeGridPos)) {
             m_activeCubeGridPos[2] ++;
             m_activeCubeLastMoveTime = glfwGetTime();
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
+        } else {
+            if(!keyWasPressed && ShouldBecomeSolid(m_activeCubeGridPos))
+                MakeActiveCubeSolid();
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        if (!keyWasPressed && m_activeCubeGridPos[2] < 9) {
+        if (!keyWasPressed) {
             auto distance = 9 - m_activeCubeGridPos[2];
-            m_activeCubeGridPos[2] += distance; 
-            m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -static_cast<float>(distance)));
+            m_activeCubeLastMoveTime = glfwGetTime();
+            for (int i = 0; i <= distance; i++) {
+                auto should = ShouldBecomeSolid(m_activeCubeGridPos + glm::ivec3(0, 0, i));
+                if (should) {
+                    m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -static_cast<float>(i)));
+                    m_activeCubeGridPos[2] += i;
+                    MakeActiveCubeSolid();
+                    break;
+                }
+            }
         }
         keyIsPressed = true;
     }
-
     keyWasPressed = keyIsPressed;
 }
 
@@ -322,28 +332,50 @@ void ExamApplication::RenderSolidBlocks()
     m_solidBlocksShaderProgram->Bind();
     m_solidBlocksVAO->Bind();
     
-    // Temporary just use one block for testing
-    glm::mat4 solidBlockModelMatrix = glm::mat4(1.0f);
-    solidBlockModelMatrix = glm::translate(solidBlockModelMatrix, m_solidBlocks[0].worldCoordinate);
-    solidBlockModelMatrix = glm::scale(solidBlockModelMatrix, glm::vec3(0.5f, 0.5, 0.5f));
-
     m_solidBlocksShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
-    m_solidBlocksShaderProgram->UploadUniformMat4("u_solidBlockModelMatrix", solidBlockModelMatrix);
-    m_solidBlocksShaderProgram->UploadUniformFloat3("u_blockColor", m_solidBlocks[0].color);
-    RenderCommands::DrawIndex(m_solidBlocksVAO, GL_TRIANGLES);
+
+    for (const auto& block : m_solidBlocks){
+        // Temporary draw call for each one
+        glm::mat4 solidBlockModelMatrix = glm::mat4(1.0f);
+        solidBlockModelMatrix = glm::translate(solidBlockModelMatrix, block.worldCoordinate);
+        solidBlockModelMatrix = glm::scale(solidBlockModelMatrix, glm::vec3(0.5f, 0.5, 0.5f));
+        m_solidBlocksShaderProgram->UploadUniformMat4("u_solidBlockModelMatrix", solidBlockModelMatrix);
+        m_solidBlocksShaderProgram->UploadUniformFloat3("u_blockColor", block.color);
+        RenderCommands::DrawIndex(m_solidBlocksVAO, GL_TRIANGLES);
+    } 
 }
 
 void ExamApplication::MoveActiveCube()
 {
-    int time = glfwGetTime();
-    if (time - m_activeCubeLastMoveTime >= 2.0f && m_activeCubeGridPos[2] < 9) {
+    double time = glfwGetTime();
+    if (time - m_activeCubeLastMoveTime >= 2.0f && !ShouldBecomeSolid(m_activeCubeGridPos)) {
         m_activeCubeGridPos[2] ++;
         m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
         m_activeCubeLastMoveTime = time;
     }
-    if (m_activeCubeGridPos[2] == 9){
+    if (time - m_activeCubeLastMoveTime >= 2.0f && ShouldBecomeSolid(m_activeCubeGridPos)){
         MakeActiveCubeSolid();
     }
+}
+
+void ExamApplication::RespawnActiveBlock()
+{
+    // Reset blocks grid position to start
+    m_activeCubeGridPos = glm::ivec3(2, 0, 0);
+    // Rebuild the model matrix to init state
+    m_cubeModelMatrix = glm::mat4(1.0f);
+    m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 2.0f));
+    m_cubeModelMatrix = glm::scale(m_cubeModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
+}
+
+bool ExamApplication::ShouldBecomeSolid(glm::ivec3 gridCoordinate)
+{
+    // If we are at end of tunnel, return true
+    if (gridCoordinate[2] >= 9) {
+        return true;
+    }
+    // Check one gridspace ahead of us
+    return IsOccupied(gridCoordinate + glm::ivec3(0, 0, 1));
 }
 
 void ExamApplication::MakeActiveCubeSolid()
@@ -357,6 +389,27 @@ void ExamApplication::MakeActiveCubeSolid()
     solidBlock.color = GetColorForSolidBlock(solidBlock.gridCoordinate[2]);
     // Add the solid block to the vector of solid blocks
     m_solidBlocks.push_back(solidBlock);
+    // Reset the position of the active block
+    RespawnActiveBlock();
+
+}
+
+bool ExamApplication::IsOccupied(glm::ivec3 gridCoordinate)
+{
+    // Check edges of tunnel
+    if (gridCoordinate[0] < 0 || gridCoordinate[0] > 4 || 
+        gridCoordinate[1] < 0 || gridCoordinate[0] > 4 ||
+        gridCoordinate[2] > 9) {
+            return true;
+        }
+    // Go trough all solid blocks and check for collision
+    for (const auto& block : m_solidBlocks) {
+        if (block.gridCoordinate == gridCoordinate) {
+            return true;
+        }
+    }
+    // No collision
+    return false;
 }
 
 glm::vec3 ExamApplication::GetColorForSolidBlock(int zPos)
@@ -366,19 +419,19 @@ glm::vec3 ExamApplication::GetColorForSolidBlock(int zPos)
     switch (colorInt)
     {
     case 0:
-        color = glm::vec3(0.8, 0.1, 0.1);
+        color = glm::vec3(0.8, 0.2, 0.2); // Red
         break;
     case 1:
-        color = glm::vec3(0.1, 0.8, 0.1);
+        color = glm::vec3(0.2, 0.8, 0.2); // Green
         break;
     case 2:
-        color = glm::vec3(0.1, 0.1, 0.8);
+        color = glm::vec3(0.8, 0.2, 0.8); // Magenta
         break;
     case 3:
-        color = glm::vec3(0.8, 0.8, 0.1); // Yellow
+        color = glm::vec3(0.8, 0.8, 0.2); // Yellow
         break;
     case 4:
-        color = glm::vec3(0.1, 0.8, 0.8); // Cyan
+        color = glm::vec3(0.2, 0.8, 0.8); // Cyan
         break;
     default:
         color = glm::vec3(1.0, 1.0, 1.0); // Fallback, white for now
