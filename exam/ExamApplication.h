@@ -10,6 +10,7 @@
 #include "VertexArray.h"
 #include "Shader.h"
 #include "PerspectiveCamera.h"
+#include "TextureManager.h"
 
 #include <memory>
 #include <glm/glm.hpp>
@@ -74,6 +75,7 @@ private:
     void InitializeTunnel();
     void InitializeCube();
     void InitializeShaders();
+    void InitializeTextures();
 
     // ===== RENDERING =====
     void RenderTunnel();
@@ -83,6 +85,7 @@ private:
     // ===== Input =====
     void HandleInput();
     void InputHandleBlockMovement(GLFWwindow *window);
+    void InputHandleTextureToggle(GLFWwindow *window);
 
     void MoveActiveCube();
     void MakeActiveCubeSolid();

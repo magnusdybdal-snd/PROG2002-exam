@@ -53,7 +53,7 @@ unsigned ExamApplication::Init()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-
+    InitializeTextures();
     InitializeTunnel();
     InitializeCube();
     InitializeShaders();
@@ -98,11 +98,12 @@ unsigned ExamApplication::Run()
 void ExamApplication::InitializeTunnel()
 {
     auto bufferLayout = BufferLayout({
-        { ShaderDataType::Float2, "position" }
+        { ShaderDataType::Float2, "position" },
+        { ShaderDataType::Float2, "tCoords" }
     });
 
     // Create 5x5 grid for the back wall
-    auto backWallVertices = GeometricTools::UnitGridGeometry2D<5,5>();
+    auto backWallVertices = GeometricTools::UnitGridGeometry2DWTCoords<5,5>();
     auto backWallIndices = GeometricTools::UnitGridTopologyTriangles<5,5>();
     
     auto backWallVertexBuffer = std::make_shared<VertexBuffer>(backWallVertices.data(), backWallVertices.size() * sizeof(float));
@@ -116,7 +117,7 @@ void ExamApplication::InitializeTunnel()
     m_backWallVAO->Unbind();
 
     // Create 5x10 grid for the side walls
-    auto tunnelVertices = GeometricTools::UnitGridGeometry2D<5,10>();
+    auto tunnelVertices = GeometricTools::UnitGridGeometry2DWTCoords<5,10>();
     auto tunnelIndices = GeometricTools::UnitGridTopologyTriangles<5,10>();
     
     auto tunnelVertexBuffer = std::make_shared<VertexBuffer>(tunnelVertices.data(), tunnelVertices.size() * sizeof(float));
@@ -173,7 +174,7 @@ void ExamApplication::InitializeCube()
     auto cubeIndexBuffer = std::make_shared<IndexBuffer>(cubeIndices.data(), cubeIndices.size());
     auto cubeBufferLayout = BufferLayout(
         {
-            { ShaderDataType::Float3, "cube_position" }
+            { ShaderDataType::Float3, "cube_position" },
         }
     );
     cubeVertexBuffer->SetLayout(cubeBufferLayout);
@@ -210,18 +211,36 @@ void ExamApplication::InitializeShaders()
     );
 }
 
+void ExamApplication::InitializeTextures()
+{
+    auto textureManager = TextureManager::GetInstance();
+    textureManager->LoadTexture2D("wallTexture", std::string(TEXTURES_DIR) + "wall_texture.jpeg", 0);
+    textureManager->LoadCubeMap("cubeTexture", std::string(TEXTURES_DIR) + "block_texture.png", 1);
+}
+
 void ExamApplication::HandleInput()
 {
     GLFWwindow* window = GetWindow();
 
     InputHandleBlockMovement(window);
+    InputHandleTextureToggle(window);
 
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 }
 
-void ExamApplication::InputHandleBlockMovement(GLFWwindow * window)
+void ExamApplication::InputHandleTextureToggle(GLFWwindow *window)
+{
+    static bool tWasPressed = false;
+    bool tPressed = (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS);
+       if (tPressed && !tWasPressed) {
+        m_textureEnabled = !m_textureEnabled;
+    } 
+    tWasPressed = tPressed;
+}
+
+void ExamApplication::InputHandleBlockMovement(GLFWwindow *window)
 {
     static bool keyWasPressed = false;
     bool keyIsPressed = false;
@@ -290,6 +309,7 @@ void ExamApplication::RenderTunnel()
     m_backWallVAO->Bind();
 
     m_tunnelShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
+    m_tunnelShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
     
     m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_backWallModelMatrix);
     m_tunnelShaderProgram->UploadUniformFloat2("u_GridSize", {5.0f, 5.0f});
@@ -333,6 +353,7 @@ void ExamApplication::RenderSolidBlocks()
     m_solidBlocksVAO->Bind();
     
     m_solidBlocksShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
+    m_solidBlocksShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
 
     for (const auto& block : m_solidBlocks){
         // Temporary draw call for each one
