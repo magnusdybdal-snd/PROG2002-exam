@@ -227,28 +227,28 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow * window)
     bool keyIsPressed = false;
 
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-        if (!keyWasPressed && m_activeCubeGridPos[0] < 4) {
+        if (!keyWasPressed && !IsOccupied(m_activeCubeGridPos + glm::ivec3(1, 0, 0))) {
             m_activeCubeGridPos[0]++;
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(1.0f, 0.0f, 0.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-        if (!keyWasPressed && m_activeCubeGridPos[0] > 0) {
+        if (!keyWasPressed && !IsOccupied(m_activeCubeGridPos + glm::ivec3(-1, 0, 0))) {
             m_activeCubeGridPos[0]--;
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(-1.0f, 0.0f, 0.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-        if (!keyWasPressed && m_activeCubeGridPos[1] < 4) {
+        if (!keyWasPressed && !IsOccupied(m_activeCubeGridPos + glm::ivec3(0, 1, 0))) {
             m_activeCubeGridPos[1]++;
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 1.0f, 0.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        if (!keyWasPressed && m_activeCubeGridPos[1] > 0) {
+        if (!keyWasPressed && !IsOccupied(m_activeCubeGridPos + glm::ivec3(0, -1, 0))) {
             m_activeCubeGridPos[1]--;
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 0.0f));
         }
@@ -395,11 +395,19 @@ void ExamApplication::MakeActiveCubeSolid()
 
 bool ExamApplication::IsOccupied(glm::ivec3 gridCoordinate)
 {
+    // Check edges of tunnel
+    if (gridCoordinate[0] < 0 || gridCoordinate[0] > 4 || 
+        gridCoordinate[1] < 0 || gridCoordinate[0] > 4 ||
+        gridCoordinate[2] >= 9) {
+            return true;
+        }
+    // Go trough all solid blocks and check for collision
     for (const auto& block : m_solidBlocks) {
         if (block.gridCoordinate == gridCoordinate) {
             return true;
         }
     }
+    // No collision
     return false;
 }
 
