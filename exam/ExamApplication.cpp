@@ -343,7 +343,6 @@ void ExamApplication::MoveActiveCube()
     }
     if (m_activeCubeGridPos[2] == 9){
         MakeActiveCubeSolid();
-        RespawnActiveBlock();
     }
 }
 
@@ -368,6 +367,9 @@ void ExamApplication::MakeActiveCubeSolid()
     solidBlock.color = GetColorForSolidBlock(solidBlock.gridCoordinate[2]);
     // Add the solid block to the vector of solid blocks
     m_solidBlocks.push_back(solidBlock);
+    // Reset the position of the active block
+    RespawnActiveBlock();
+
 }
 
 glm::vec3 ExamApplication::GetColorForSolidBlock(int zPos)
