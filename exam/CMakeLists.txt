@@ -15,11 +15,11 @@ add_custom_command(
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/textures/wall_texture.jpeg
     ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources/textures/wall_texture.jpeg)
 
-#  add_custom_command(
-#      TARGET ${PROJECT_NAME} POST_BUILD
-#      COMMAND ${CMAKE_COMMAND} -E copy
-#     ${CMAKE_CURRENT_SOURCE_DIR}/resources/textures/chesspiece_texture.jpg
-#      ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources/textures/chesspiece_texture.jpg)
+add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_CURRENT_SOURCE_DIR}/resources/textures/cube_texture-modified.jpg
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources/textures/cube_texture-modified.jpg)
 
  target_compile_definitions(${PROJECT_NAME} PRIVATE
      TEXTURES_DIR="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources/textures/")
