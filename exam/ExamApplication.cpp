@@ -174,7 +174,7 @@ void ExamApplication::InitializeCube()
     auto cubeIndexBuffer = std::make_shared<IndexBuffer>(cubeIndices.data(), cubeIndices.size());
     auto cubeBufferLayout = BufferLayout(
         {
-            { ShaderDataType::Float3, "cube_position" }
+            { ShaderDataType::Float3, "cube_position" },
         }
     );
     cubeVertexBuffer->SetLayout(cubeBufferLayout);
@@ -215,6 +215,7 @@ void ExamApplication::InitializeTextures()
 {
     auto textureManager = TextureManager::GetInstance();
     textureManager->LoadTexture2D("wallTexture", std::string(TEXTURES_DIR) + "wall_texture.jpeg", 0);
+    textureManager->LoadCubeMap("cubeTexture", std::string(TEXTURES_DIR) + "cube_texture-modified.jpg", 1);
 }
 
 void ExamApplication::HandleInput()
@@ -352,6 +353,7 @@ void ExamApplication::RenderSolidBlocks()
     m_solidBlocksVAO->Bind();
     
     m_solidBlocksShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
+    m_solidBlocksShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
 
     for (const auto& block : m_solidBlocks){
         // Temporary draw call for each one
