@@ -169,14 +169,16 @@ void ExamApplication::InitializeTunnel()
 
 void ExamApplication::InitializeCube()
 {
-    auto cubeVertices = GeometricTools::UnitCubeGeometry3D;
-    auto cubeIndices = GeometricTools::UnitCubeTopologyTriangles;
+    auto cubeVertices = GeometricTools::UnitCube3D24WNormals;
+    auto cubeIndices = GeometricTools::UnitCube3D24WNormalsTopologyTriangles;
 
     auto cubeVertexBuffer = std::make_shared<VertexBuffer>(cubeVertices.data(), cubeVertices.size() * sizeof(float));
     auto cubeIndexBuffer = std::make_shared<IndexBuffer>(cubeIndices.data(), cubeIndices.size());
     auto cubeBufferLayout = BufferLayout(
         {
             { ShaderDataType::Float3, "cube_position" },
+            { ShaderDataType::Float3, "cube_normal" }
+
         }
     );
     cubeVertexBuffer->SetLayout(cubeBufferLayout);
