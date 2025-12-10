@@ -396,22 +396,25 @@ void ExamApplication::RenderTunnel()
 
 void ExamApplication::RenderActiveCube()
 {
+    if (m_activePiece.size() == 0)
+        return;
+
     m_activeCubeShaderProgram->Bind();
     m_activeCubeVAO->Bind();
 
+    // Common uniforms for active piece
     m_activeCubeShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
-    //m_activeCubeShaderProgram->UploadUniformMat4("u_activeCubeModelMatrix", m_cubeModelMatrix);
     m_activeCubeShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
-    //RenderCommands::DrawIndex(m_activeCubeVAO, GL_TRIANGLES);
 
-    for (const auto& block : m_activePiece) {
-        // Temporary draw call for each one
+    // Upload all model matrices to the array
+    for (int i = 0; i < m_activePiece.size(); i++) {
         glm::mat4 modelMatrix = glm::mat4(1.0f);
-        modelMatrix = glm::translate(modelMatrix, block.worldCoordinate);
+        modelMatrix = glm::translate(modelMatrix, m_activePiece[i].worldCoordinate);
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
-        m_activeCubeShaderProgram->UploadUniformMat4("u_activeCubeModelMatrix", modelMatrix);
-        RenderCommands::DrawIndex(m_solidBlocksVAO, GL_TRIANGLES);
+        m_activeCubeShaderProgram->UploadUniformMat4("u_activeCubeModelMatrices[" + std::to_string(i) + "]", modelMatrix);
     }
+    // Draw the whole array (4 pieces) at once
+    RenderCommands::DrawIndexInstanced(m_solidBlocksVAO, GL_TRIANGLES, m_activePiece.size());
 }
 
 void ExamApplication::RenderSolidBlocks()
