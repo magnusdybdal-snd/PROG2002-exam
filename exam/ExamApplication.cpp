@@ -76,17 +76,19 @@ unsigned ExamApplication::Run()
     while (!glfwWindowShouldClose(window)) 
     {
         // clear screen
-        RenderCommands::SetClearColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
+        RenderCommands::SetClearColor(glm::vec4(1.0f) * m_globalIllumination);
         RenderCommands::Clear();
 
         // Process events
         glfwPollEvents();
+        MoveActiveCube();
+        HandleInput();
+
+        m_lightSourcePos = glm::vec3(m_cubeModelMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
         RenderTunnel();
         RenderSolidBlocks();
         RenderActiveCube();
-        MoveActiveCube();
-        HandleInput();
 
         glfwSwapBuffers(window);
     }
@@ -143,7 +145,7 @@ void ExamApplication::InitializeTunnel()
     // Top wall
     m_topWallModelMatrix = glm::mat4(1.0f);
     m_topWallModelMatrix = glm::translate(m_topWallModelMatrix, glm::vec3(0.0f, tunnelHeight/2.0f, -tunnelDepth/2.0f));
-    m_topWallModelMatrix = glm::rotate(m_topWallModelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    m_topWallModelMatrix = glm::rotate(m_topWallModelMatrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     m_topWallModelMatrix = glm::scale(m_topWallModelMatrix, glm::vec3(tunnelWidth, tunnelDepth, 1.0f));
     // Left wall
     m_leftWallModelMatrix = glm::mat4(1.0f);
@@ -160,21 +162,23 @@ void ExamApplication::InitializeTunnel()
     // Bottom wall
     m_bottomWallModelMatrix = glm::mat4(1.0f);
     m_bottomWallModelMatrix = glm::translate(m_bottomWallModelMatrix, glm::vec3(0.0f, -tunnelHeight/2.0f, -tunnelDepth/2.0f));
-    m_bottomWallModelMatrix = glm::rotate(m_bottomWallModelMatrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    m_bottomWallModelMatrix = glm::rotate(m_bottomWallModelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     m_bottomWallModelMatrix = glm::scale(m_bottomWallModelMatrix, glm::vec3(tunnelWidth, tunnelDepth, 1.0f));
 
 }
 
 void ExamApplication::InitializeCube()
 {
-    auto cubeVertices = GeometricTools::UnitCubeGeometry3D;
-    auto cubeIndices = GeometricTools::UnitCubeTopologyTriangles;
+    auto cubeVertices = GeometricTools::UnitCube3D24WNormals;
+    auto cubeIndices = GeometricTools::UnitCube3D24WNormalsTopologyTriangles;
 
     auto cubeVertexBuffer = std::make_shared<VertexBuffer>(cubeVertices.data(), cubeVertices.size() * sizeof(float));
     auto cubeIndexBuffer = std::make_shared<IndexBuffer>(cubeIndices.data(), cubeIndices.size());
     auto cubeBufferLayout = BufferLayout(
         {
             { ShaderDataType::Float3, "cube_position" },
+            { ShaderDataType::Float3, "cube_normal" }
+
         }
     );
     cubeVertexBuffer->SetLayout(cubeBufferLayout);
@@ -267,7 +271,7 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow *window)
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        if (!keyWasPressed && m_activeCubeGridPos[1] > 0) {
+        if (!keyWasPressed && !IsOccupied(m_activeCubeGridPos + glm::ivec3(0, -1, 0))) {
             m_activeCubeGridPos[1]--;
             m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 0.0f));
         }
@@ -310,7 +314,12 @@ void ExamApplication::RenderTunnel()
 
     m_tunnelShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
     m_tunnelShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
-    
+    m_tunnelShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
+    m_tunnelShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_lightSourcePos); // Light follow the active cube
+    m_tunnelShaderProgram->UploadUniformFloat1("u_diffuseStr", glm::vec1(0.75f));
+    m_tunnelShaderProgram->UploadUniformFloat3("u_cameraPosition", m_camera->GetPosition());
+    m_tunnelShaderProgram->UploadUniformFloat1("u_specularStr", glm::vec1(0.5f));
+
     m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_backWallModelMatrix);
     m_tunnelShaderProgram->UploadUniformFloat2("u_GridSize", {5.0f, 5.0f});
     RenderCommands::DrawIndex(m_backWallVAO, GL_TRIANGLES);
@@ -341,6 +350,7 @@ void ExamApplication::RenderActiveCube()
 
     m_activeCubeShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
     m_activeCubeShaderProgram->UploadUniformMat4("u_activeCubeModelMatrix", m_cubeModelMatrix);
+    m_activeCubeShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
     RenderCommands::DrawIndex(m_activeCubeVAO, GL_TRIANGLES);
 }
 
@@ -354,6 +364,13 @@ void ExamApplication::RenderSolidBlocks()
     
     m_solidBlocksShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
     m_solidBlocksShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
+    m_solidBlocksShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
+    m_solidBlocksShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_cubeModelMatrix[3]); // Light follow the active cube
+    m_solidBlocksShaderProgram->UploadUniformFloat1("u_diffuseStr", glm::vec1(0.5f)); // Hard coded, make var if want to change
+    m_solidBlocksShaderProgram->UploadUniformFloat3("u_cameraPosition", m_camera->GetPosition());
+    m_solidBlocksShaderProgram->UploadUniformFloat1("u_specularStr", glm::vec1(1.0f));
+
+
 
     for (const auto& block : m_solidBlocks){
         // Temporary draw call for each one
@@ -419,7 +436,7 @@ bool ExamApplication::IsOccupied(glm::ivec3 gridCoordinate)
 {
     // Check edges of tunnel
     if (gridCoordinate[0] < 0 || gridCoordinate[0] > 4 || 
-        gridCoordinate[1] < 0 || gridCoordinate[0] > 4 ||
+        gridCoordinate[1] < 0 || gridCoordinate[1] > 4 ||
         gridCoordinate[2] > 9) {
             return true;
         }

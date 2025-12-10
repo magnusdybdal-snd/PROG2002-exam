@@ -8,23 +8,44 @@ const std::string solidBlocksFragmentShaderSrc = R"(
 
 layout(binding = 1) uniform samplerCube u_CubeTextureSampler;
 
-in vec3 vs_Position;        // INPUT: Position from vertex shader
+in vec3 vs_position;
+in vec4 vs_fragPosition;
+in vec4 vs_normal;          // INPUT: Normal position from vertex shader
+
 out vec4 fragColor;
 
 // Uniform
 uniform vec3 u_blockColor;      // The color of the solid block based on z pos
 uniform int u_textureEnabled;   // Flag for if the textures should be shown
+uniform float u_ambientStrength;
+uniform vec3 u_lightSourcePosition;
+uniform float u_diffuseStr;
+uniform vec3 u_cameraPosition;
+uniform float u_specularStr;
+
 
 void main()
 {
-    vec4 textureColor = texture(u_CubeTextureSampler, vs_Position);
+    vec4 textureColor = texture(u_CubeTextureSampler, vs_position);
+
+    // Diffuse illumination
+    vec3 lightDirection = normalize(vec3(u_lightSourcePosition - vs_fragPosition.xyz));
+    float diffuseStrength = max(dot(lightDirection, vs_normal.xyz), 0.0) * u_diffuseStr;
+
+    // Specualr illumination
+    vec3 reflectedLight = normalize(reflect(-lightDirection, vs_normal.xyz));
+    vec3 observerDirection = normalize(u_cameraPosition - vs_fragPosition.xyz);
+    float specFactor = pow(max(dot(observerDirection, reflectedLight), 0.0), 128);
+    float specular = specFactor * u_specularStr;
 
     if(u_textureEnabled == 0) {
         // Flag toggled off, just use block color
-        fragColor = vec4(u_blockColor, 1.0);
+        fragColor = vec4((u_blockColor * (u_ambientStrength + diffuseStrength + specular)), 1.0);
     } else {
         // Texture flag on: We mix the block color with the texture
-        fragColor = mix(vec4(u_blockColor, 1.0), textureColor, 0.3); 
+        vec4 textureBlend = mix(vec4(u_blockColor, 1.0), textureColor, 0.3);
+        // Only apply lighting to the rgb, not alpha
+        fragColor = vec4((textureBlend.rgb * (u_ambientStrength + diffuseStrength + specular)), 1.0);
     }
 }
 )";
