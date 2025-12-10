@@ -495,18 +495,19 @@ bool ExamApplication::ShouldBecomeSolid(glm::ivec3 gridCoordinate)
 
 void ExamApplication::MakeActiveCubeSolid()
 {
-    // SolidBlock solidBlock;
-    // // Copy the grid coordinate from the active cube
-    // solidBlock.gridCoordinate = m_activeCubeGridPos;
-    // // Get the world coordinate to the new solid block by extracting it from the model matrix
-    // solidBlock.worldCoordinate = glm::vec3(m_cubeModelMatrix[3]);
-    // // Get color for block based on z position
-    // solidBlock.color = GetColorForSolidBlock(solidBlock.gridCoordinate[2]);
-    // // Add the solid block to the vector of solid blocks
-    // m_solidBlocks.push_back(solidBlock);
-    // // Reset the position of the active block
-    // RespawnActiveBlock();
-
+    for (const auto& block : m_activePiece) {
+        SolidBlock solidBlock;
+        // Copy the grid coordinate from the active cube
+        solidBlock.gridCoordinate = block.gridCoordinate;
+        // Get the world coordinate to the new solid block by extracting it from the model matrix
+        solidBlock.worldCoordinate = block.worldCoordinate;
+        // Get color for block based on z position
+        solidBlock.color = GetColorForSolidBlock(solidBlock.gridCoordinate[2]);
+        // Add the solid block to the vector of solid blocks
+        m_solidBlocks.push_back(solidBlock);
+        // Reset the position of the active block
+    }
+    //RespawnActiveBlock();
 }
 
 bool ExamApplication::IsOccupied(glm::ivec3 gridCoordinate)
