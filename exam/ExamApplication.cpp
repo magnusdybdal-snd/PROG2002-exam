@@ -76,7 +76,7 @@ unsigned ExamApplication::Run()
     while (!glfwWindowShouldClose(window)) 
     {
         // clear screen
-        RenderCommands::SetClearColor(glm::vec4(0.3f, 0.3f, 0.3f, 1.0f));
+        RenderCommands::SetClearColor(glm::vec4(0.2f, 0.5f, 1.0f, 1.0f) * m_globalIllumination);
         RenderCommands::Clear();
 
         // Process events
@@ -310,6 +310,7 @@ void ExamApplication::RenderTunnel()
 
     m_tunnelShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
     m_tunnelShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
+    m_tunnelShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
     
     m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_backWallModelMatrix);
     m_tunnelShaderProgram->UploadUniformFloat2("u_GridSize", {5.0f, 5.0f});
@@ -341,6 +342,7 @@ void ExamApplication::RenderActiveCube()
 
     m_activeCubeShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
     m_activeCubeShaderProgram->UploadUniformMat4("u_activeCubeModelMatrix", m_cubeModelMatrix);
+    m_activeCubeShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
     RenderCommands::DrawIndex(m_activeCubeVAO, GL_TRIANGLES);
 }
 
@@ -354,6 +356,8 @@ void ExamApplication::RenderSolidBlocks()
     
     m_solidBlocksShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
     m_solidBlocksShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
+    m_solidBlocksShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
+
 
     for (const auto& block : m_solidBlocks){
         // Temporary draw call for each one
