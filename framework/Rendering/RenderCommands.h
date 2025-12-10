@@ -26,7 +26,7 @@ namespace RenderCommands
     }
 
     // https://learnopengl.com/Advanced-OpenGL/Instancing
-    inline void DrawIndexInstanced(const std::shared_ptr<VertexArray>& vao, GLenum primitive, GL_UNSIGNED_INT instanceCount)
+    inline void DrawIndexInstanced(const std::shared_ptr<VertexArray>& vao, GLenum primitive, GLsizei instanceCount)
     {
         glDrawElementsInstanced(primitive, vao->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr, instanceCount);
     }
