@@ -346,17 +346,29 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow *window)
     }
     else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
         if (!keyWasPressed) {
-            auto distance = 9 - m_activeCubeGridPos[2];
+
             m_activeCubeLastMoveTime = glfwGetTime();
-            for (int i = 0; i <= distance; i++) {
-                auto should = ShouldBecomeSolid(m_activeCubeGridPos + glm::ivec3(0, 0, i));
-                if (should) {
-                    m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -static_cast<float>(i)));
-                    m_activeCubeGridPos[2] += i;
-                    MakeActiveCubeSolid();
-                    break;
+            int distance = 0;
+            bool collided = false;
+
+            // Count up how far we can move
+            while(!collided) {
+                for (const auto& block : m_activePiece){
+                    if (IsOccupied(block.gridCoordinate + glm::ivec3(0, 0, distance + 1))) {
+                        collided = true;
+                        break;
+                    }
                 }
+                if(!collided)
+                    distance ++;
             }
+
+            // Apply the movement
+            for (auto& block : m_activePiece) {
+                block.gridCoordinate[2] += distance;
+                block.worldCoordinate += glm::vec3(0.0f, 0.0f, -0.5f * distance);
+            }
+            MakeActiveCubeSolid();
         }
         keyIsPressed = true;
     }
