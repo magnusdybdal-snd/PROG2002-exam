@@ -475,12 +475,9 @@ void ExamApplication::MoveActiveCube()
 
 void ExamApplication::RespawnActiveBlock()
 {
-    // Reset blocks grid position to start
-    m_activeCubeGridPos = glm::ivec3(2, 0, 0);
-    // Rebuild the model matrix to init state
-    m_cubeModelMatrix = glm::mat4(1.0f);
-    m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 2.0f));
-    m_cubeModelMatrix = glm::scale(m_cubeModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
+    m_activePiece.clear();
+    MakeLPiece();
+
 }
 
 bool ExamApplication::ShouldBecomeSolid(glm::ivec3 gridCoordinate)
@@ -507,7 +504,7 @@ void ExamApplication::MakeActiveCubeSolid()
         m_solidBlocks.push_back(solidBlock);
         // Reset the position of the active block
     }
-    //RespawnActiveBlock();
+    RespawnActiveBlock();
 }
 
 bool ExamApplication::IsOccupied(glm::ivec3 gridCoordinate)
