@@ -82,6 +82,9 @@ unsigned ExamApplication::Run()
         // Process events
         glfwPollEvents();
 
+        // Set the light source position to the active cube
+        m_lightSourcePosition = m_cubeModelMatrix[3];
+
         RenderTunnel();
         RenderSolidBlocks();
         RenderActiveCube();
@@ -311,6 +314,8 @@ void ExamApplication::RenderTunnel()
     m_tunnelShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
     m_tunnelShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
     m_tunnelShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
+    m_solidBlocksShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_cubeModelMatrix[3]); // Light follow the active cube
+
     
     m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_backWallModelMatrix);
     m_tunnelShaderProgram->UploadUniformFloat2("u_GridSize", {5.0f, 5.0f});
@@ -357,6 +362,7 @@ void ExamApplication::RenderSolidBlocks()
     m_solidBlocksShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
     m_solidBlocksShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
     m_solidBlocksShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
+    m_solidBlocksShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_cubeModelMatrix[3]); // Light follow the active cube
 
 
     for (const auto& block : m_solidBlocks){
