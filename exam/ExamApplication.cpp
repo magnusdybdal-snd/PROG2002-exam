@@ -81,15 +81,14 @@ unsigned ExamApplication::Run()
 
         // Process events
         glfwPollEvents();
+        MoveActiveCube();
+        HandleInput();
 
-        // Set the light source position to the active cube
-        m_lightSourcePosition = m_cubeModelMatrix[3];
+        m_lightSourcePos = glm::vec3(m_cubeModelMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
         RenderTunnel();
         RenderSolidBlocks();
         RenderActiveCube();
-        MoveActiveCube();
-        HandleInput();
 
         glfwSwapBuffers(window);
     }
@@ -146,7 +145,7 @@ void ExamApplication::InitializeTunnel()
     // Top wall
     m_topWallModelMatrix = glm::mat4(1.0f);
     m_topWallModelMatrix = glm::translate(m_topWallModelMatrix, glm::vec3(0.0f, tunnelHeight/2.0f, -tunnelDepth/2.0f));
-    m_topWallModelMatrix = glm::rotate(m_topWallModelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    m_topWallModelMatrix = glm::rotate(m_topWallModelMatrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     m_topWallModelMatrix = glm::scale(m_topWallModelMatrix, glm::vec3(tunnelWidth, tunnelDepth, 1.0f));
     // Left wall
     m_leftWallModelMatrix = glm::mat4(1.0f);
@@ -163,7 +162,7 @@ void ExamApplication::InitializeTunnel()
     // Bottom wall
     m_bottomWallModelMatrix = glm::mat4(1.0f);
     m_bottomWallModelMatrix = glm::translate(m_bottomWallModelMatrix, glm::vec3(0.0f, -tunnelHeight/2.0f, -tunnelDepth/2.0f));
-    m_bottomWallModelMatrix = glm::rotate(m_bottomWallModelMatrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    m_bottomWallModelMatrix = glm::rotate(m_bottomWallModelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     m_bottomWallModelMatrix = glm::scale(m_bottomWallModelMatrix, glm::vec3(tunnelWidth, tunnelDepth, 1.0f));
 
 }
@@ -314,8 +313,8 @@ void ExamApplication::RenderTunnel()
     m_tunnelShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
     m_tunnelShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
     m_tunnelShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
-    m_solidBlocksShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_cubeModelMatrix[3]); // Light follow the active cube
-
+    m_tunnelShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_lightSourcePos); // Light follow the active cube
+    m_tunnelShaderProgram->UploadUniformFloat1("u_diffuseStr", glm::vec1(1.5f));
     
     m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_backWallModelMatrix);
     m_tunnelShaderProgram->UploadUniformFloat2("u_GridSize", {5.0f, 5.0f});
