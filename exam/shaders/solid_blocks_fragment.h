@@ -23,10 +23,12 @@ void main()
 
     if(u_textureEnabled == 0) {
         // Flag toggled off, just use block color
-        fragColor = vec4(u_blockColor, 1.0) * u_ambientStrength;
+        fragColor = vec4((u_blockColor * u_ambientStrength), 1.0);
     } else {
         // Texture flag on: We mix the block color with the texture
-        fragColor = mix(vec4(u_blockColor, 1.0), textureColor, 0.3) * u_ambientStrength; 
+        vec4 textureBlend = mix(vec4(u_blockColor, 1.0), textureColor, 0.3);
+        // Only apply lighting to the rgb, not alpha
+        fragColor = vec4((textureBlend.rgb * u_ambientStrength), 1.0);
     }
 }
 )";

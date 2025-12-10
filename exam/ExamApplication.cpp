@@ -76,7 +76,7 @@ unsigned ExamApplication::Run()
     while (!glfwWindowShouldClose(window)) 
     {
         // clear screen
-        RenderCommands::SetClearColor(glm::vec4(0.2f, 0.5f, 1.0f, 1.0f) * m_globalIllumination);
+        RenderCommands::SetClearColor(glm::vec4(1.0f) * m_globalIllumination);
         RenderCommands::Clear();
 
         // Process events
