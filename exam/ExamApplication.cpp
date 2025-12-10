@@ -312,35 +312,30 @@ void ExamApplication::RenderTunnel()
     m_tunnelShaderProgram->Bind();
     m_backWallVAO->Bind();
 
+    // Common uniforms for all wals
     m_tunnelShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
-    m_tunnelShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
+    m_tunnelShaderProgram->UploadUniformBool("u_textureEnabled", m_textureEnabled);
     m_tunnelShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
     m_tunnelShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_lightSourcePos); // Light follow the active cube
     m_tunnelShaderProgram->UploadUniformFloat1("u_diffuseStr", glm::vec1(0.75f));
     m_tunnelShaderProgram->UploadUniformFloat3("u_cameraPosition", m_camera->GetPosition());
     m_tunnelShaderProgram->UploadUniformFloat1("u_specularStr", glm::vec1(0.5f));
 
+    // Draw the back wall
     m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_backWallModelMatrix);
+    m_tunnelShaderProgram->UploadUniformBool("u_usingInstancing", false);
     m_tunnelShaderProgram->UploadUniformFloat2("u_GridSize", {5.0f, 5.0f});
     RenderCommands::DrawIndex(m_backWallVAO, GL_TRIANGLES);
 
-    // Top wall
+    // Use instanced rendering to draw all side walls in one call
     m_tunnelVAO->Bind();
     m_tunnelShaderProgram->UploadUniformFloat2("u_GridSize", {5.0f, 10.0f});
-    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_topWallModelMatrix);
-    RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
-
-    // Left wall
-    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_leftWallModelMatrix);
-    RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
-
-    // Right wall
-    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_rightWallModelMatrix);
-    RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
-
-    // Bottom wall
-    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_bottomWallModelMatrix);
-    RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrices[0]", m_topWallModelMatrix);
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrices[1]", m_leftWallModelMatrix);
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrices[2]", m_rightWallModelMatrix);
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrices[3]", m_bottomWallModelMatrix);
+    m_tunnelShaderProgram->UploadUniformBool("u_usingInstancing", true);
+    RenderCommands::DrawIndexInstanced(m_tunnelVAO, GL_TRIANGLES, 4);
 }
 
 void ExamApplication::RenderActiveCube()
@@ -370,7 +365,30 @@ void ExamApplication::RenderSolidBlocks()
     m_solidBlocksShaderProgram->UploadUniformFloat3("u_cameraPosition", m_camera->GetPosition());
     m_solidBlocksShaderProgram->UploadUniformFloat1("u_specularStr", glm::vec1(1.0f));
 
+    // // OpenGL uses column - major ordering : http://www.theamazingking.com/ogl-matrix.php
+    // // Upload all matrices and colors to array used for instanced drawing
+    // std::vector<float> data;
 
+    // for (const auto& block : m_solidBlocks) {
+    //     glm::mat4 modelMatrix = glm::mat4(1.0f);
+    //     modelMatrix = glm::translate(modelMatrix, block.worldCoordinate);
+    //     modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
+
+    //     // Extract model matrix values in COLUMN - MAJOR order
+    //     for (int col = 0; col < 4; col++) {
+    //         for (int row = 0; row < 4; row++) {
+    //             data.push_back(modelMatrix[col][row]);
+    //         }
+    //     }
+    //     // Then we add all the color values
+    //     data.push_back(block.color.x);
+    //     data.push_back(block.color.y);
+    //     data.push_back(block.color.z);
+
+    //     m_solidBlocksShaderProgram->UploadUniformMat4("u_solidBlockModelMatrices[" + std::to_string(i) + "]", modelMatrix);
+    //     m_solidBlocksShaderProgram->UploadUniformFloat3("u_blockColors[" + std::to_string(i) + "]", m_solidBlocks[i].color); 
+    // }
+    // RenderCommands::DrawIndexInstanced(m_solidBlocksVAO, GL_TRIANGLES, m_solidBlocks.size());
 
     for (const auto& block : m_solidBlocks){
         // Temporary draw call for each one
