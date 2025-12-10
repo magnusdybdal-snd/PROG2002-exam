@@ -68,6 +68,7 @@ private:
     std::shared_ptr<VertexArray> m_tunnelVAO;
     std::unique_ptr<Shader> m_tunnelShaderProgram;
     std::unique_ptr<PerspectiveCamera> m_camera;
+    std::shared_ptr<VertexBuffer> m_solidBlocksInstanceVBO;
 
     // ===== MODEL MATRICES =====
     glm::mat4 m_backWallModelMatrix;

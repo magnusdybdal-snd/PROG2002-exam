@@ -25,6 +25,12 @@ namespace RenderCommands
         glDrawElements(primitive, vao->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
     }
 
+    // https://learnopengl.com/Advanced-OpenGL/Instancing
+    inline void DrawIndexInstanced(const std::shared_ptr<VertexArray>& vao, GLenum primitive, GLsizei instanceCount)
+    {
+        glDrawElementsInstanced(primitive, vao->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr, instanceCount);
+    }
+
     inline void SetClearColor(const glm::vec4& color)
     {
         glClearColor(color.x, color.y, color.z, color.w);
