@@ -333,6 +333,7 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow *window)
                 }
             }
             if (canMove) {
+                m_activeCubeLastMoveTime = glfwGetTime();
                 for (auto& block: m_activePiece) {
                     block.gridCoordinate[2]++;
                     block.worldCoordinate += glm::vec3(0.0f, 0.0f, -0.5f);
@@ -342,19 +343,6 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow *window)
             }
         }
         keyIsPressed = true;
-        // if (!keyWasPressed && !ShouldBecomeSolid(m_activeCubeGridPos)) {
-        //     m_activeCubeGridPos[2] ++;
-        //     m_activeCubeLastMoveTime = glfwGetTime();
-        //     m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
-        //     for (auto& block : m_activePiece) {
-        //         block.gridCoordinate[2]++;
-        //         block.worldCoordinate += glm::vec3(0.0f, 0.0f, -0.5f);
-        //     }
-        // } else {
-        //     if(!keyWasPressed && ShouldBecomeSolid(m_activeCubeGridPos))
-        //         MakeActiveCubeSolid();
-        // }
-        // keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
         if (!keyWasPressed) {
@@ -462,15 +450,26 @@ void ExamApplication::RenderSolidBlocks()
 
 void ExamApplication::MoveActiveCube()
 {
-    // double time = glfwGetTime();
-    // if (time - m_activeCubeLastMoveTime >= 2.0f && !ShouldBecomeSolid(m_activeCubeGridPos)) {
-    //     m_activeCubeGridPos[2] ++;
-    //     m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
-    //     m_activeCubeLastMoveTime = time;
-    // }
-    // if (time - m_activeCubeLastMoveTime >= 2.0f && ShouldBecomeSolid(m_activeCubeGridPos)){
-    //     MakeActiveCubeSolid();
-    // }
+
+    double time = glfwGetTime();
+    if (time - m_activeCubeLastMoveTime >= 2.0f) {
+        bool canMove = true;
+        for (const auto& block : m_activePiece) {
+            if(ShouldBecomeSolid(block.gridCoordinate)) {
+                canMove = false;
+                break;
+            }
+        }
+        if (canMove) {
+            for (auto& block : m_activePiece){
+                block.gridCoordinate[2]++;
+                block.worldCoordinate += glm::vec3(0.0f, 0.0f, -0.5f);
+            } 
+            m_activeCubeLastMoveTime = time;
+        } else {
+            MakeActiveCubeSolid();
+        }
+    }
 }
 
 void ExamApplication::RespawnActiveBlock()
