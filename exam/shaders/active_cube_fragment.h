@@ -9,9 +9,12 @@ const std::string activeCubeFragmentShaderSrc = R"(
 in vec3 vs_Position;           
 out vec4 fragColor;
 
+// Uniforms
+uniform float u_ambientStrength;
+
 void main()
 {
-    fragColor = vec4(0.0, 1.0, 1.0, 0.3);
+    fragColor = vec4(0.0, 1.0, 1.0, 0.3) * u_ambientStrength;
 }
 )";
 

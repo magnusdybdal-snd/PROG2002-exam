@@ -14,6 +14,8 @@ out vec4 fragColor;
 // Uniform
 uniform vec3 u_blockColor;      // The color of the solid block based on z pos
 uniform int u_textureEnabled;   // Flag for if the textures should be shown
+uniform float u_ambientStrength;
+
 
 void main()
 {
@@ -21,10 +23,10 @@ void main()
 
     if(u_textureEnabled == 0) {
         // Flag toggled off, just use block color
-        fragColor = vec4(u_blockColor, 1.0);
+        fragColor = vec4(u_blockColor, 1.0) * u_ambientStrength;
     } else {
         // Texture flag on: We mix the block color with the texture
-        fragColor = mix(vec4(u_blockColor, 1.0), textureColor, 0.3); 
+        fragColor = mix(vec4(u_blockColor, 1.0), textureColor, 0.3) * u_ambientStrength; 
     }
 }
 )";

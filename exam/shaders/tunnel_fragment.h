@@ -16,6 +16,7 @@ out vec4 fragColor;
 // Uniforms
 uniform vec2 u_GridSize;        // Grid size of the wall (5x10 for sides, 5x5 for back)
 uniform int u_textureEnabled;   // Flag for if the textures should be shown
+uniform float u_ambientStrength;
 
 void main()
 {
@@ -44,10 +45,10 @@ void main()
         fragColor = vec4(borderColor, alpha);
     } else {
         // First we blend the texture and a blue color
-        vec4 textureBlend = mix(textureColor, vec4(0.27, 0.5, 1.0, 1.0), 0.3);
+        vec4 textureBlend = mix(textureColor, vec4(0.27, 0.5, 1.0, 1.0), 0.3) * u_ambientStrength;
         // Then we blend with the border alpha to maintain visible borders
         // alpha is dynamic so we either show the blended texture OR a black border
-        fragColor = mix(textureBlend, vec4(0.0, 0.0, 0.0, 1.0), alpha); 
+        fragColor = mix(textureBlend, vec4(0.0, 0.0, 0.0, 1.0), alpha) * u_ambientStrength; 
     }
 }
 )";
