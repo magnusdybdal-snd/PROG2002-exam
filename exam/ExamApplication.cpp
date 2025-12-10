@@ -198,7 +198,7 @@ void ExamApplication::InitializeCube()
     m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 2.0f));
     m_cubeModelMatrix = glm::scale(m_cubeModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
 
-    MakeLPiece();
+    MakeZPiece();
 }
 
 /**
@@ -570,5 +570,45 @@ void ExamApplication::MakeLPiece()
 
     block.gridCoordinate = glm::ivec3(1, 1, 0);
     block.worldCoordinate = glm::vec3(-0.5f, -0.5f, 2.0f);
+    m_activePiece.push_back(block);
+}
+
+void ExamApplication::MakeTPiece()
+{
+    ActiveBlock block;
+    block.gridCoordinate = glm::ivec3(2, 2, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(1, 2, 0);
+    block.worldCoordinate = glm::vec3(-0.5f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(3, 2, 0);
+    block.worldCoordinate = glm::vec3(0.5f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(2, 1, 0);
+    block.worldCoordinate = glm::vec3(0.0f, -0.5f, 2.0f);
+    m_activePiece.push_back(block);
+}
+
+void ExamApplication::MakeZPiece()
+{
+    ActiveBlock block;
+    block.gridCoordinate = glm::ivec3(1, 2, 0);
+    block.worldCoordinate = glm::vec3(-0.5f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(2, 2, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(2, 3, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.5f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(3, 3, 0);
+    block.worldCoordinate = glm::vec3(0.5f, 0.5f, 2.0f);
     m_activePiece.push_back(block);
 }

@@ -104,6 +104,8 @@ private:
     bool ShouldBecomeSolid(glm::ivec3 position);
     bool IsOccupied(glm::ivec3 gridCoordinate);
     void MakeLPiece();
+    void MakeTPiece();
+    void MakeZPiece();
 
 
 
