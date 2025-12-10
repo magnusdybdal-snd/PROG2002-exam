@@ -450,7 +450,6 @@ void ExamApplication::RenderSolidBlocks()
 
 void ExamApplication::MoveActiveCube()
 {
-
     double time = glfwGetTime();
     if (time - m_activeCubeLastMoveTime >= 2.0f) {
         bool canMove = true;
@@ -474,9 +473,24 @@ void ExamApplication::MoveActiveCube()
 
 void ExamApplication::RespawnActiveBlock()
 {
+    // Clear the vector with pieces
     m_activePiece.clear();
-    MakeLPiece();
 
+    int randomNum = rand() % 3;
+    switch (randomNum)
+    {
+    case 0:
+        MakeLPiece();
+        break;
+    case 1:
+        MakeTPiece();
+        break;
+    case 2:
+        MakeZPiece();
+        break;
+    default:
+        MakeLPiece();
+    }
 }
 
 bool ExamApplication::ShouldBecomeSolid(glm::ivec3 gridCoordinate)
