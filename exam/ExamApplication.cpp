@@ -476,6 +476,7 @@ void ExamApplication::RespawnActiveBlock()
     // Clear the vector with pieces
     m_activePiece.clear();
 
+    // Pick a random piece
     int randomNum = rand() % 3;
     switch (randomNum)
     {
