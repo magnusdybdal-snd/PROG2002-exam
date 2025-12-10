@@ -20,6 +20,8 @@ uniform int u_textureEnabled;   // Flag for if the textures should be shown
 uniform float u_ambientStrength;
 uniform vec3 u_lightSourcePosition;
 uniform float u_diffuseStr;
+uniform vec3 u_cameraPosition;
+uniform float u_specularStr;
 
 
 void main()
@@ -30,14 +32,20 @@ void main()
     vec3 lightDirection = normalize(vec3(u_lightSourcePosition - vs_fragPosition.xyz));
     float diffuseStrength = max(dot(lightDirection, vs_normal.xyz), 0.0) * u_diffuseStr;
 
+    // Specualr illumination
+    vec3 reflectedLight = normalize(reflect(-lightDirection, vs_normal.xyz));
+    vec3 observerDirection = normalize(u_cameraPosition - vs_fragPosition.xyz);
+    float specFactor = pow(max(dot(observerDirection, reflectedLight), 0.0), 128);
+    float specular = specFactor * u_specularStr;
+
     if(u_textureEnabled == 0) {
         // Flag toggled off, just use block color
-        fragColor = vec4((u_blockColor * (u_ambientStrength + diffuseStrength)), 1.0);
+        fragColor = vec4((u_blockColor * (u_ambientStrength + diffuseStrength + specular)), 1.0);
     } else {
         // Texture flag on: We mix the block color with the texture
         vec4 textureBlend = mix(vec4(u_blockColor, 1.0), textureColor, 0.3);
         // Only apply lighting to the rgb, not alpha
-        fragColor = vec4((textureBlend.rgb * (u_ambientStrength + diffuseStrength)), 1.0);
+        fragColor = vec4((textureBlend.rgb * (u_ambientStrength + diffuseStrength + specular)), 1.0);
     }
 }
 )";
