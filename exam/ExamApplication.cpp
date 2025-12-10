@@ -316,8 +316,10 @@ void ExamApplication::RenderTunnel()
     m_tunnelShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
     m_tunnelShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
     m_tunnelShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_lightSourcePos); // Light follow the active cube
-    m_tunnelShaderProgram->UploadUniformFloat1("u_diffuseStr", glm::vec1(1.5f));
-    
+    m_tunnelShaderProgram->UploadUniformFloat1("u_diffuseStr", glm::vec1(0.75f));
+    m_tunnelShaderProgram->UploadUniformFloat3("u_cameraPosition", m_camera->GetPosition());
+    m_tunnelShaderProgram->UploadUniformFloat1("u_specularStr", glm::vec1(0.5f));
+
     m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_backWallModelMatrix);
     m_tunnelShaderProgram->UploadUniformFloat2("u_GridSize", {5.0f, 5.0f});
     RenderCommands::DrawIndex(m_backWallVAO, GL_TRIANGLES);

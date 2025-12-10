@@ -72,7 +72,7 @@ private:
     glm::mat4 m_cubeModelMatrix;
 
     // ===== ILLUMINATION =====
-    float m_globalIllumination = 0.0f;
+    float m_globalIllumination = 0.5f;
     glm::vec3 m_lightSourcePos;
 
     // ===== INITIALIZATOIN =====

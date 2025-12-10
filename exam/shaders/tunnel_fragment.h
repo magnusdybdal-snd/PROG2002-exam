@@ -21,6 +21,8 @@ uniform int u_textureEnabled;   // Flag for if the textures should be shown
 uniform float u_ambientStrength;
 uniform vec3 u_lightSourcePosition;
 uniform float u_diffuseStr;
+uniform vec3 u_cameraPosition;
+uniform float u_specularStr;
 
 void main()
 {
@@ -31,6 +33,12 @@ void main()
     // Diffuse light calculations
     vec3 lightDirection = normalize(vec3(u_lightSourcePosition - v_fragPos.xyz));
     float diffuseStrength = max(dot(lightDirection, v_normal.xyz), 0.0) * u_diffuseStr;
+
+    // Specualr illumination
+    vec3 reflectedLight = normalize(reflect(-lightDirection, v_normal.xyz));
+    vec3 observerDirection = normalize(u_cameraPosition - v_fragPos.xyz);
+    float specFactor = pow(max(dot(observerDirection, reflectedLight), 0.0), 64);
+    float specular = specFactor * u_specularStr;
 
     // Scale position to grid coordinates
     vec2 gridCoord = v_GridPos * u_GridSize;
@@ -50,7 +58,7 @@ void main()
     if (u_textureEnabled == 0) {
         // If texture flag is off we use the border color and the alpha (0.0 or 1.0 when close to edge)
         // This will draw borders / grid for our tunnel
-        fragColor = vec4((borderColor * (u_ambientStrength + diffuseStrength)), alpha);
+        fragColor = vec4((borderColor * (u_ambientStrength + diffuseStrength + specular)), alpha);
     } else {
         // First we blend the texture and a blue color
         vec4 textureBlend = mix(textureColor, vec4(0.27, 0.5, 1.0, 1.0), 0.3);
@@ -58,7 +66,7 @@ void main()
         // alpha is dynamic so we either show the blended texture OR a black border
         vec4 finalColor = mix(textureBlend, vec4(0.0, 0.0, 0.0, 1.0), alpha);
         // Only apply lighting to the rgb channels
-        fragColor = vec4(finalColor.rgb * (u_ambientStrength + diffuseStrength), finalColor.a);
+        fragColor = vec4(finalColor.rgb * (u_ambientStrength + diffuseStrength + specular), finalColor.a);
     }
 }
 )";
