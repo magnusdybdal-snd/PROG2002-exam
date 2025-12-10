@@ -364,6 +364,8 @@ void ExamApplication::RenderSolidBlocks()
     m_solidBlocksShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
     m_solidBlocksShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
     m_solidBlocksShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_cubeModelMatrix[3]); // Light follow the active cube
+    m_solidBlocksShaderProgram->UploadUniformFloat1("u_diffuseStr", glm::vec1(0.5f)); // Hard coded, make var if want to change :)
+
 
 
     for (const auto& block : m_solidBlocks){
