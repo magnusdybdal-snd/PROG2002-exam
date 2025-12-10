@@ -365,7 +365,30 @@ void ExamApplication::RenderSolidBlocks()
     m_solidBlocksShaderProgram->UploadUniformFloat3("u_cameraPosition", m_camera->GetPosition());
     m_solidBlocksShaderProgram->UploadUniformFloat1("u_specularStr", glm::vec1(1.0f));
 
+    // // OpenGL uses column - major ordering : http://www.theamazingking.com/ogl-matrix.php
+    // // Upload all matrices and colors to array used for instanced drawing
+    // std::vector<float> data;
 
+    // for (const auto& block : m_solidBlocks) {
+    //     glm::mat4 modelMatrix = glm::mat4(1.0f);
+    //     modelMatrix = glm::translate(modelMatrix, block.worldCoordinate);
+    //     modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
+
+    //     // Extract model matrix values in COLUMN - MAJOR order
+    //     for (int col = 0; col < 4; col++) {
+    //         for (int row = 0; row < 4; row++) {
+    //             data.push_back(modelMatrix[col][row]);
+    //         }
+    //     }
+    //     // Then we add all the color values
+    //     data.push_back(block.color.x);
+    //     data.push_back(block.color.y);
+    //     data.push_back(block.color.z);
+
+    //     m_solidBlocksShaderProgram->UploadUniformMat4("u_solidBlockModelMatrices[" + std::to_string(i) + "]", modelMatrix);
+    //     m_solidBlocksShaderProgram->UploadUniformFloat3("u_blockColors[" + std::to_string(i) + "]", m_solidBlocks[i].color); 
+    // }
+    // RenderCommands::DrawIndexInstanced(m_solidBlocksVAO, GL_TRIANGLES, m_solidBlocks.size());
 
     for (const auto& block : m_solidBlocks){
         // Temporary draw call for each one

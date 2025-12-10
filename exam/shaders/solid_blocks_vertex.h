@@ -7,9 +7,11 @@ const std::string solidBlocksVertexShaderSrc = R"(
 #version 430 core
 
 layout(location = 0) in vec3 i_Position;    // INPUT: 3D position from VBO
-layout(location = 1) in vec3 i_normal;      // INPUT: normal vertex attribute
+layout(location = 1) in vec3 i_normal;      // INPUT: Normal vertex attribute
+//layout(location = 2) in mat4 instanceMatrix // INPUT: Array with model matrices
 
 // Uniforms
+uniform int u_blockCount;
 uniform mat4 u_ViewProjectionMatrix;
 uniform mat4 u_solidBlockModelMatrix;
 
@@ -26,7 +28,6 @@ void main()
 
     vs_normal = normalize(u_solidBlockModelMatrix * vec4(i_normal, 0.0));
 }
-
 )";
 
 #endif // SOLID_BLOCKS_VERTEX_H_
