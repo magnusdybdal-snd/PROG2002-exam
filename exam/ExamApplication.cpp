@@ -197,6 +197,8 @@ void ExamApplication::InitializeCube()
     m_cubeModelMatrix = glm::mat4(1.0f);
     m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 2.0f));
     m_cubeModelMatrix = glm::scale(m_cubeModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
+
+    MakeZPiece();
 }
 
 /**
@@ -250,57 +252,123 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow *window)
     bool keyIsPressed = false;
 
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-        if (!keyWasPressed && !IsOccupied(m_activeCubeGridPos + glm::ivec3(1, 0, 0))) {
-            m_activeCubeGridPos[0]++;
-            m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(1.0f, 0.0f, 0.0f));
+        if (!keyWasPressed) {
+            bool canMove = true;
+            for (const auto& block : m_activePiece) {
+                if (IsOccupied(block.gridCoordinate + glm::ivec3(1, 0, 0))) {
+                    canMove = false;
+                    break;
+                }
+            }
+            if (canMove) {
+                for (auto& block: m_activePiece) {
+                    block.gridCoordinate[0]++;
+                    block.worldCoordinate += glm::vec3(0.5f, 0.0f, 0.0f);
+                }
+            }
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-        if (!keyWasPressed && !IsOccupied(m_activeCubeGridPos + glm::ivec3(-1, 0, 0))) {
-            m_activeCubeGridPos[0]--;
-            m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(-1.0f, 0.0f, 0.0f));
+        if (!keyWasPressed) {
+            bool canMove = true;
+            for (const auto& block : m_activePiece) {
+                if (IsOccupied(block.gridCoordinate + glm::ivec3(-1, 0, 0))) {
+                    canMove = false;
+                    break;
+                }
+            }
+            if (canMove) {
+                for (auto& block: m_activePiece) {
+                    block.gridCoordinate[0]--;
+                    block.worldCoordinate += glm::vec3(-0.5f, 0.0f, 0.0f);
+                }
+            }
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-        if (!keyWasPressed && !IsOccupied(m_activeCubeGridPos + glm::ivec3(0, 1, 0))) {
-            m_activeCubeGridPos[1]++;
-            m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 1.0f, 0.0f));
+        if (!keyWasPressed) {
+            bool canMove = true;
+            for (const auto& block : m_activePiece) {
+                if (IsOccupied(block.gridCoordinate + glm::ivec3(0, 1, 0))) {
+                    canMove = false;
+                    break;
+                }
+            }
+            if (canMove) {
+                for (auto& block: m_activePiece) {
+                    block.gridCoordinate[1]++;
+                    block.worldCoordinate += glm::vec3(0.0f, 0.5f, 0.0f);
+                }
+            }
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        if (!keyWasPressed && !IsOccupied(m_activeCubeGridPos + glm::ivec3(0, -1, 0))) {
-            m_activeCubeGridPos[1]--;
-            m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 0.0f));
+        if (!keyWasPressed) {
+            bool canMove = true;
+            for (const auto& block : m_activePiece) {
+                if (IsOccupied(block.gridCoordinate + glm::ivec3(0, -1, 0))) {
+                    canMove = false;
+                    break;
+                }
+            }
+            if (canMove) {
+                for (auto& block: m_activePiece) {
+                    block.gridCoordinate[1]--;
+                    block.worldCoordinate += glm::vec3(0.0f, -0.5f, 0.0f);
+                }
+            }
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-        if (!keyWasPressed && !ShouldBecomeSolid(m_activeCubeGridPos)) {
-            m_activeCubeGridPos[2] ++;
-            m_activeCubeLastMoveTime = glfwGetTime();
-            m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
-        } else {
-            if(!keyWasPressed && ShouldBecomeSolid(m_activeCubeGridPos))
+        if (!keyWasPressed) {
+            bool canMove = true;
+            for (const auto& block : m_activePiece) {
+                if (ShouldBecomeSolid(block.gridCoordinate)) {
+                    canMove = false;
+                    break;
+                }
+            }
+            if (canMove) {
+                m_activeCubeLastMoveTime = glfwGetTime();
+                for (auto& block: m_activePiece) {
+                    block.gridCoordinate[2]++;
+                    block.worldCoordinate += glm::vec3(0.0f, 0.0f, -0.5f);
+                }
+            } else {
                 MakeActiveCubeSolid();
+            }
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
         if (!keyWasPressed) {
-            auto distance = 9 - m_activeCubeGridPos[2];
+
             m_activeCubeLastMoveTime = glfwGetTime();
-            for (int i = 0; i <= distance; i++) {
-                auto should = ShouldBecomeSolid(m_activeCubeGridPos + glm::ivec3(0, 0, i));
-                if (should) {
-                    m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -static_cast<float>(i)));
-                    m_activeCubeGridPos[2] += i;
-                    MakeActiveCubeSolid();
-                    break;
+            int distance = 0;
+            bool collided = false;
+
+            // Count up how far we can move
+            while(!collided) {
+                for (const auto& block : m_activePiece){
+                    if (IsOccupied(block.gridCoordinate + glm::ivec3(0, 0, distance + 1))) {
+                        collided = true;
+                        break;
+                    }
                 }
+                if(!collided)
+                    distance ++;
             }
+
+            // Apply the movement
+            for (auto& block : m_activePiece) {
+                block.gridCoordinate[2] += distance;
+                block.worldCoordinate += glm::vec3(0.0f, 0.0f, -0.5f * distance);
+            }
+            MakeActiveCubeSolid();
         }
         keyIsPressed = true;
     }
@@ -340,13 +408,25 @@ void ExamApplication::RenderTunnel()
 
 void ExamApplication::RenderActiveCube()
 {
+    if (m_activePiece.size() == 0)
+        return;
+
     m_activeCubeShaderProgram->Bind();
     m_activeCubeVAO->Bind();
 
+    // Common uniforms for active piece
     m_activeCubeShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
-    m_activeCubeShaderProgram->UploadUniformMat4("u_activeCubeModelMatrix", m_cubeModelMatrix);
     m_activeCubeShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
-    RenderCommands::DrawIndex(m_activeCubeVAO, GL_TRIANGLES);
+
+    // Upload all model matrices to the array
+    for (int i = 0; i < m_activePiece.size(); i++) {
+        glm::mat4 modelMatrix = glm::mat4(1.0f);
+        modelMatrix = glm::translate(modelMatrix, m_activePiece[i].worldCoordinate);
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
+        m_activeCubeShaderProgram->UploadUniformMat4("u_activeCubeModelMatrices[" + std::to_string(i) + "]", modelMatrix);
+    }
+    // Draw the whole array (4 pieces) at once
+    RenderCommands::DrawIndexInstanced(m_solidBlocksVAO, GL_TRIANGLES, m_activePiece.size());
 }
 
 void ExamApplication::RenderSolidBlocks()
@@ -404,24 +484,47 @@ void ExamApplication::RenderSolidBlocks()
 void ExamApplication::MoveActiveCube()
 {
     double time = glfwGetTime();
-    if (time - m_activeCubeLastMoveTime >= 2.0f && !ShouldBecomeSolid(m_activeCubeGridPos)) {
-        m_activeCubeGridPos[2] ++;
-        m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, 0.0f, -1.0f));
-        m_activeCubeLastMoveTime = time;
-    }
-    if (time - m_activeCubeLastMoveTime >= 2.0f && ShouldBecomeSolid(m_activeCubeGridPos)){
-        MakeActiveCubeSolid();
+    if (time - m_activeCubeLastMoveTime >= 2.0f) {
+        bool canMove = true;
+        for (const auto& block : m_activePiece) {
+            if(ShouldBecomeSolid(block.gridCoordinate)) {
+                canMove = false;
+                break;
+            }
+        }
+        if (canMove) {
+            for (auto& block : m_activePiece){
+                block.gridCoordinate[2]++;
+                block.worldCoordinate += glm::vec3(0.0f, 0.0f, -0.5f);
+            } 
+            m_activeCubeLastMoveTime = time;
+        } else {
+            MakeActiveCubeSolid();
+        }
     }
 }
 
 void ExamApplication::RespawnActiveBlock()
 {
-    // Reset blocks grid position to start
-    m_activeCubeGridPos = glm::ivec3(2, 0, 0);
-    // Rebuild the model matrix to init state
-    m_cubeModelMatrix = glm::mat4(1.0f);
-    m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 2.0f));
-    m_cubeModelMatrix = glm::scale(m_cubeModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
+    // Clear the vector with pieces
+    m_activePiece.clear();
+
+    // Pick a random piece
+    int randomNum = rand() % 3;
+    switch (randomNum)
+    {
+    case 0:
+        MakeLPiece();
+        break;
+    case 1:
+        MakeTPiece();
+        break;
+    case 2:
+        MakeZPiece();
+        break;
+    default:
+        MakeLPiece();
+    }
 }
 
 bool ExamApplication::ShouldBecomeSolid(glm::ivec3 gridCoordinate)
@@ -436,18 +539,19 @@ bool ExamApplication::ShouldBecomeSolid(glm::ivec3 gridCoordinate)
 
 void ExamApplication::MakeActiveCubeSolid()
 {
-    SolidBlock solidBlock;
-    // Copy the grid coordinate from the active cube
-    solidBlock.gridCoordinate = m_activeCubeGridPos;
-    // Get the world coordinate to the new solid block by extracting it from the model matrix
-    solidBlock.worldCoordinate = glm::vec3(m_cubeModelMatrix[3]);
-    // Get color for block based on z position
-    solidBlock.color = GetColorForSolidBlock(solidBlock.gridCoordinate[2]);
-    // Add the solid block to the vector of solid blocks
-    m_solidBlocks.push_back(solidBlock);
-    // Reset the position of the active block
+    for (const auto& block : m_activePiece) {
+        SolidBlock solidBlock;
+        // Copy the grid coordinate from the active cube
+        solidBlock.gridCoordinate = block.gridCoordinate;
+        // Get the world coordinate to the new solid block by extracting it from the model matrix
+        solidBlock.worldCoordinate = block.worldCoordinate;
+        // Get color for block based on z position
+        solidBlock.color = GetColorForSolidBlock(solidBlock.gridCoordinate[2]);
+        // Add the solid block to the vector of solid blocks
+        m_solidBlocks.push_back(solidBlock);
+        // Reset the position of the active block
+    }
     RespawnActiveBlock();
-
 }
 
 bool ExamApplication::IsOccupied(glm::ivec3 gridCoordinate)
@@ -494,4 +598,64 @@ glm::vec3 ExamApplication::GetColorForSolidBlock(int zPos)
         break;
     }
     return color;
+}
+
+void ExamApplication::MakeLPiece()
+{
+    ActiveBlock block;
+    block.gridCoordinate = glm::ivec3(2, 3, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(2, 2, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.5f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(2, 1, 0);
+    block.worldCoordinate = glm::vec3(0.0f, -0.5f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(1, 1, 0);
+    block.worldCoordinate = glm::vec3(-0.5f, -0.5f, 2.0f);
+    m_activePiece.push_back(block);
+}
+
+void ExamApplication::MakeTPiece()
+{
+    ActiveBlock block;
+    block.gridCoordinate = glm::ivec3(2, 2, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(1, 2, 0);
+    block.worldCoordinate = glm::vec3(-0.5f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(3, 2, 0);
+    block.worldCoordinate = glm::vec3(0.5f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(2, 1, 0);
+    block.worldCoordinate = glm::vec3(0.0f, -0.5f, 2.0f);
+    m_activePiece.push_back(block);
+}
+
+void ExamApplication::MakeZPiece()
+{
+    ActiveBlock block;
+    block.gridCoordinate = glm::ivec3(1, 2, 0);
+    block.worldCoordinate = glm::vec3(-0.5f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(2, 2, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(2, 3, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.5f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(3, 3, 0);
+    block.worldCoordinate = glm::vec3(0.5f, 0.5f, 2.0f);
+    m_activePiece.push_back(block);
 }

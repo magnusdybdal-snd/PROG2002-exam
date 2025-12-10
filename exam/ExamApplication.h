@@ -35,6 +35,11 @@ private:
         glm::vec3  color;               // Color (based on grid coordinate)
     };
 
+    struct ActiveBlock {
+        glm::ivec3 gridCoordinate;
+        glm::vec3 worldCoordinate;
+    };
+
     // ===== CAMERA CONSTANTS =====
     static constexpr float CAMERA_FOV = 60.0f;              // degrees
     static constexpr float CAMERA_WIDTH = 1024.0f;
@@ -51,6 +56,7 @@ private:
     glm::ivec3 m_activeCubeGridPos = glm::ivec3(2, 0, 0);   // Starting position in the tube
     std::shared_ptr<VertexArray> m_activeCubeVAO;
     std::unique_ptr<Shader> m_activeCubeShaderProgram;
+    std::vector<ActiveBlock> m_activePiece;
 
     // ===== SOLID BLOCKS =====
     std::vector<SolidBlock> m_solidBlocks;                  // Holds all solid blocks
@@ -98,6 +104,9 @@ private:
     void RespawnActiveBlock();
     bool ShouldBecomeSolid(glm::ivec3 position);
     bool IsOccupied(glm::ivec3 gridCoordinate);
+    void MakeLPiece();
+    void MakeTPiece();
+    void MakeZPiece();
 
 
 
