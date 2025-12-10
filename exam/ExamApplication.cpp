@@ -312,6 +312,7 @@ void ExamApplication::RenderTunnel()
     m_tunnelShaderProgram->Bind();
     m_backWallVAO->Bind();
 
+    // Common uniforms for all wals
     m_tunnelShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
     m_tunnelShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
     m_tunnelShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
@@ -320,27 +321,19 @@ void ExamApplication::RenderTunnel()
     m_tunnelShaderProgram->UploadUniformFloat3("u_cameraPosition", m_camera->GetPosition());
     m_tunnelShaderProgram->UploadUniformFloat1("u_specularStr", glm::vec1(0.5f));
 
+    // Draw the back wall
     m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_backWallModelMatrix);
     m_tunnelShaderProgram->UploadUniformFloat2("u_GridSize", {5.0f, 5.0f});
     RenderCommands::DrawIndex(m_backWallVAO, GL_TRIANGLES);
 
-    // Top wall
+    // Use instanced rendering to draw all side walls in one call
     m_tunnelVAO->Bind();
     m_tunnelShaderProgram->UploadUniformFloat2("u_GridSize", {5.0f, 10.0f});
-    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_topWallModelMatrix);
-    RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
-
-    // Left wall
-    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_leftWallModelMatrix);
-    RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
-
-    // Right wall
-    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_rightWallModelMatrix);
-    RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
-
-    // Bottom wall
-    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_bottomWallModelMatrix);
-    RenderCommands::DrawIndex(m_tunnelVAO, GL_TRIANGLES);
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix[0]", m_topWallModelMatrix);
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix[1]", m_leftWallModelMatrix);
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix[2]", m_rightWallModelMatrix);
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix[3]", m_bottomWallModelMatrix);
+    RenderCommands::DrawIndexInstanced(m_tunnelVAO, GL_TRIANGLES, 4);
 }
 
 void ExamApplication::RenderActiveCube()
