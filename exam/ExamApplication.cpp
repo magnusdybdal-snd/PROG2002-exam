@@ -420,7 +420,6 @@ void ExamApplication::RenderActiveCube()
 
     // Common uniforms for active piece
     m_activeCubeShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
-    m_activeCubeShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
 
     // Upload all model matrices to the array
     for (int i = 0; i < m_activePiece.size(); i++) {
