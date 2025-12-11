@@ -666,9 +666,15 @@ void ExamApplication::InputHandleRotation(GLFWwindow *window)
     static bool keyWasPressed = false;
     bool keyIsPressed = false;  
 
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS){
         if (!keyWasPressed) {
-            PitchActivePiece(glfwGetKey(window, GLFW_KEY_Q == GLFW_PRESS));
+            PitchActivePiece(true);
+        }
+        keyIsPressed = true;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
+        if (!keyWasPressed) {
+            PitchActivePiece(false);
         }
         keyIsPressed = true;
     }
@@ -695,33 +701,40 @@ void ExamApplication::PitchActivePiece(bool positive)
 
     // Choose a pivot point. 2nd block in the piece, should be middle
     glm::ivec3 pivotPointGridCoordinate = m_activePiece[1].gridCoordinate;
-    glm::vec3 pivotPointWorldCoordinate = m_activePiece[1].worldCoordinate;
 
-    // Coordinates to rotate to
-    glm::ivec3 newGridCoordinates;
-    glm::vec3 newWordlCoordinates;
+    // Coordinates to rotate to for each block
+    std::vector<glm::ivec3> rotatedGridCoordinates;
 
     // Go trough each block and find their relative position compared to pivot point
     for (const auto& block : m_activePiece) {
-        glm::ivec3 relativeGridCoordinates = block.gridCoordinate - pivotPointGridCoordinate;
-        glm::vec3 relativeWorldCoordinates = block.worldCoordinate - pivotPointWorldCoordinate;
+        glm::ivec3 relativeGridCoordinate = block.gridCoordinate - pivotPointGridCoordinate;
 
-        int newZ = block.gridCoordinate[2] + (relativeGridCoordinates[1] * direction);
-        int newY = block.gridCoordinate[1] + (relativeGridCoordinates[2] * direction);
+        /* Get the new values. The axis we rotate around does not change for any block
+         * Relative position on the other two axis swaps */
+        int newY = (-relativeGridCoordinate[2] * direction);
+        int newZ = ( relativeGridCoordinate[1] * direction); 
 
-        newGridCoordinates = glm::ivec3(block.gridCoordinate[0], newY, newZ);
-        newWordlCoordinates = glm::vec3(block.worldCoordinate[0], static_cast<float>(newY) / 2.0f, static_cast<float>(newZ) / 2.0f);
-
-        // If new position is occupied we return early
-        if (IsOccupied(newGridCoordinates)){
+        // Add the new relative position to the pivot point coordinate to place it back on the grid
+        glm::ivec3 rotated = pivotPointGridCoordinate + glm::ivec3(relativeGridCoordinate[0], newY, newZ); 
+        
+        // Check if new position is occupied
+        if (IsOccupied(rotated)){
             return;
         }
+        // Add coordinate to vector
+        rotatedGridCoordinates.push_back(rotated);
     }
 
     // Apply the rotation
-    for (auto& block : m_activePiece) {
-        block.gridCoordinate = newGridCoordinates;
-        block.worldCoordinate = newWordlCoordinates;
+    for (int i = 0; i < m_activePiece.size(); i++) {
+        m_activePiece[i].gridCoordinate = rotatedGridCoordinates[i];
+        // World coordinates are half the size of grid coordinates
+        // They also have an offset from origin
+        m_activePiece[i].worldCoordinate = glm::vec3(
+            (rotatedGridCoordinates[i].x - 2) / 2.0f,
+            (rotatedGridCoordinates[i].y - 2) / 2.0f,
+            (2 - rotatedGridCoordinates[i].z) / 2.0f
+        );
     }
 }
 
