@@ -538,7 +538,7 @@ bool ExamApplication::IsOccupied(glm::ivec3 gridCoordinate)
     // Check edges of tunnel
     if (gridCoordinate[0] < 0 || gridCoordinate[0] > 4 || 
         gridCoordinate[1] < 0 || gridCoordinate[1] > 4 ||
-        gridCoordinate[2] > 9) {
+        gridCoordinate[2] < 0 || gridCoordinate[2] > 9) {
             return true;
         }
     // Go trough all solid blocks and check for collision
