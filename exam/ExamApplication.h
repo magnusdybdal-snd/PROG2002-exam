@@ -55,14 +55,13 @@ private:
     // ===== ACTIVE BLOCK =====
     float m_activeCubeLastMoveTime = 0.0f;                     // Keeps track of when to automatically move inwards
     glm::ivec3 m_activeCubeGridPos = glm::ivec3(2, 0, 0);   // Starting position in the tube
-    std::shared_ptr<VertexArray> m_activeCubeVAO;
+    std::shared_ptr<VertexArray> m_cubeVAO;
     std::unique_ptr<Shader> m_activeCubeShaderProgram;
     std::vector<ActiveBlock> m_activePiece;
 
     // ===== SOLID BLOCKS =====
     std::vector<SolidBlock> m_solidBlocks;                  // Holds all solid blocks
     std::unique_ptr<Shader> m_solidBlocksShaderProgram;
-    std::shared_ptr<VertexArray> m_solidBlocksVAO;
 
     // ===== SMART POINTERS =====
     std::shared_ptr<VertexArray> m_backWallVAO;
@@ -110,7 +109,6 @@ private:
     void MakeActiveCubeSolid();
     glm::vec3 GetColorForSolidBlock(int zPos);
     void RespawnActiveBlock();
-    bool ShouldBecomeSolid(glm::ivec3 position);
     bool IsOccupied(glm::ivec3 gridCoordinate);
     void MakeLPiece();
     void MakeTPiece();
@@ -120,4 +118,4 @@ private:
 
 
 };
-#endif // AssignmentApplication_H_
+#endif // EXAMAPPLICATION_H_

@@ -57,6 +57,8 @@ unsigned ExamApplication::Init()
     InitializeTunnel();
     InitializeCube();
     InitializeShaders();
+    MakeLPiece();
+
     glm::vec3 sun = glm::vec3(0.0f, 5.0f, -5.0f);
 
     return EXIT_SUCCESS;
@@ -98,7 +100,9 @@ unsigned ExamApplication::Run()
     std::cout << "Exiting..." << std::endl;
     return EXIT_SUCCESS;
 }
-
+/**
+ * Initializes the tunnel/pit with all its model matrices
+ */
 void ExamApplication::InitializeTunnel()
 {
     auto bufferLayout = BufferLayout({
@@ -169,6 +173,9 @@ void ExamApplication::InitializeTunnel()
 
 }
 
+/**
+ * Initializes the cube geometry used in both solid cubes and active cubes
+ */
 void ExamApplication::InitializeCube()
 {
     auto cubeVertices = GeometricTools::UnitCube3D24WNormals;
@@ -185,22 +192,10 @@ void ExamApplication::InitializeCube()
     );
     cubeVertexBuffer->SetLayout(cubeBufferLayout);
 
-    m_activeCubeVAO = std::make_shared<VertexArray>();
-    m_activeCubeVAO->AddVertexBuffer(cubeVertexBuffer);
-    m_activeCubeVAO->SetIndexBuffer(cubeIndexBuffer);
-    m_activeCubeVAO->Unbind();
-
-    // Initialize solid blocks vao with the same geometry
-    m_solidBlocksVAO = std::make_shared<VertexArray>();
-    m_solidBlocksVAO->AddVertexBuffer(cubeVertexBuffer);
-    m_solidBlocksVAO->SetIndexBuffer(cubeIndexBuffer);
-    m_solidBlocksVAO->Unbind();
-
-    m_cubeModelMatrix = glm::mat4(1.0f);
-    m_cubeModelMatrix = glm::translate(m_cubeModelMatrix, glm::vec3(0.0f, -1.0f, 2.0f));
-    m_cubeModelMatrix = glm::scale(m_cubeModelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
-
-    MakeLPiece();
+    m_cubeVAO = std::make_shared<VertexArray>();
+    m_cubeVAO->AddVertexBuffer(cubeVertexBuffer);
+    m_cubeVAO->SetIndexBuffer(cubeIndexBuffer);
+    m_cubeVAO->Unbind();
 }
 
 /**
@@ -219,6 +214,9 @@ void ExamApplication::InitializeShaders()
     );
 }
 
+/**
+ * Initializes textures used on walls and solid cubes
+ */
 void ExamApplication::InitializeTextures()
 {
     auto textureManager = TextureManager::GetInstance();
@@ -226,6 +224,9 @@ void ExamApplication::InitializeTextures()
     textureManager->LoadCubeMap("cubeTexture", std::string(TEXTURES_DIR) + "block_texture.png", 1);
 }
 
+/**
+ * Master input handler, delegates to respective functions
+ */
 void ExamApplication::HandleInput()
 {
     GLFWwindow* window = GetWindow();
@@ -237,6 +238,242 @@ void ExamApplication::HandleInput()
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
+}
+
+/**
+ * Checks if an active piece can be moved and moves it if it can.
+ */
+bool ExamApplication::TryToMoveActivePiece(glm::ivec3 gridDiff, glm::vec3 worldDiff)
+{
+    // Check for all blocks if we can move
+    for (const auto& block : m_activePiece) {
+        if (IsOccupied(block.gridCoordinate + gridDiff)){
+            return false;
+        }
+    }
+    //  Apply movement
+    for (auto& block : m_activePiece) {
+        block.gridCoordinate += gridDiff;
+        block.worldCoordinate += worldDiff;
+    }
+    return true;
+}
+
+/**
+ * Render the tunnel walls
+ * Back wall is done in one draw, the other four walls are done with instanced drawing
+ */
+void ExamApplication::RenderTunnel()
+{
+    m_tunnelShaderProgram->Bind();
+    m_backWallVAO->Bind();
+
+    // Common uniforms for all wals
+    m_tunnelShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
+    m_tunnelShaderProgram->UploadUniformBool("u_textureEnabled", m_textureEnabled);
+    m_tunnelShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
+    m_tunnelShaderProgram->UploadUniformFloat3("u_lightSourcePosition2", m_sun); // Sun moves around tunnel
+    m_tunnelShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_lightSourcePos); // Light follow the active cube
+    m_tunnelShaderProgram->UploadUniformFloat1("u_diffuseStr", glm::vec1(0.75f));
+    m_tunnelShaderProgram->UploadUniformFloat3("u_cameraPosition", m_camera->GetPosition());
+    m_tunnelShaderProgram->UploadUniformFloat1("u_specularStr", glm::vec1(0.5f));
+
+    // Draw the back wall
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_backWallModelMatrix);
+    m_tunnelShaderProgram->UploadUniformBool("u_usingInstancing", false);
+    m_tunnelShaderProgram->UploadUniformFloat2("u_GridSize", {5.0f, 5.0f});
+    RenderCommands::DrawIndex(m_backWallVAO, GL_TRIANGLES);
+
+    // Use instanced rendering to draw all side walls in one call
+    m_tunnelVAO->Bind();
+    m_tunnelShaderProgram->UploadUniformFloat2("u_GridSize", {5.0f, 10.0f});
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrices[0]", m_topWallModelMatrix);
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrices[1]", m_leftWallModelMatrix);
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrices[2]", m_rightWallModelMatrix);
+    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrices[3]", m_bottomWallModelMatrix);
+    m_tunnelShaderProgram->UploadUniformBool("u_usingInstancing", true);
+    RenderCommands::DrawIndexInstanced(m_tunnelVAO, GL_TRIANGLES, 4);
+}
+
+/**
+ * Render the active piece. This is done with instanced rendering doing only one draw call
+ */
+void ExamApplication::RenderActiveCube()
+{
+    if (m_activePiece.size() == 0)
+        return;
+
+    m_activeCubeShaderProgram->Bind();
+    m_cubeVAO->Bind();
+
+    // Common uniforms for active piece
+    m_activeCubeShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
+
+    // Upload all model matrices to the array
+    for (int i = 0; i < m_activePiece.size(); i++) {
+        glm::mat4 modelMatrix = glm::mat4(1.0f);
+        modelMatrix = glm::translate(modelMatrix, m_activePiece[i].worldCoordinate);
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
+        m_activeCubeShaderProgram->UploadUniformMat4("u_activeCubeModelMatrices[" + std::to_string(i) + "]", modelMatrix);
+    }
+    // Draw the whole array (4 pieces) at once
+    RenderCommands::DrawIndexInstanced(m_cubeVAO, GL_TRIANGLES, m_activePiece.size());
+}
+
+void ExamApplication::RenderSolidBlocks()
+{
+    if (m_solidBlocks.size() == 0)
+        return;
+
+    m_solidBlocksShaderProgram->Bind();
+    m_cubeVAO->Bind();
+    
+    m_solidBlocksShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
+    m_solidBlocksShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
+    m_solidBlocksShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
+    m_solidBlocksShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_lightSourcePos); // Light follow the active cube
+    m_solidBlocksShaderProgram->UploadUniformFloat3("u_lightSourcePosition2", m_sun); // Sun moves around tunnel
+    m_solidBlocksShaderProgram->UploadUniformFloat1("u_diffuseStr", glm::vec1(0.5f));
+    m_solidBlocksShaderProgram->UploadUniformFloat3("u_cameraPosition", m_camera->GetPosition());
+    m_solidBlocksShaderProgram->UploadUniformFloat1("u_specularStr", glm::vec1(1.0f));
+
+    for (const auto& block : m_solidBlocks){
+        // Draws each individual block. Did not have time to figure out instanced drawing for solid cubes
+        glm::mat4 solidBlockModelMatrix = glm::mat4(1.0f);
+        solidBlockModelMatrix = glm::translate(solidBlockModelMatrix, block.worldCoordinate);
+        solidBlockModelMatrix = glm::scale(solidBlockModelMatrix, glm::vec3(0.5f, 0.5, 0.5f));
+        m_solidBlocksShaderProgram->UploadUniformMat4("u_solidBlockModelMatrix", solidBlockModelMatrix);
+        m_solidBlocksShaderProgram->UploadUniformFloat3("u_blockColor", block.color);
+        RenderCommands::DrawIndex(m_cubeVAO, GL_TRIANGLES);
+    } 
+}
+/**
+ * Moves the active piece one unit every two seconds
+ */
+void ExamApplication::MoveActiveCube()
+{
+    double time = glfwGetTime();
+    if (time - m_activeCubeLastMoveTime >= 2.0f) {
+        bool canMove = TryToMoveActivePiece(glm::ivec3(0, 0, 1), glm::vec3(0.0f, 0.0f, -0.5f));
+        m_activeCubeLastMoveTime = glfwGetTime();
+        if (!canMove)
+            MakeActiveCubeSolid();
+        }
+}
+
+/**
+ * Respawns a random complex piece in the beginning of the tunnel
+ */
+void ExamApplication::RespawnActiveBlock()
+{
+    // Clear the vector with pieces
+    m_activePiece.clear();
+
+    // Pick a random piece
+    int randomNum = rand() % 3;
+    switch (randomNum)
+    {
+    case 0:
+        MakeLPiece();
+        break;
+    case 1:
+        MakeTPiece();
+        break;
+    case 2:
+        MakeZPiece();
+        break;
+    default:
+        MakeLPiece();
+    }
+}
+
+/**
+ * Makes all blocks in the active piece solid
+ * Color is decided based on z position in tunnel
+ */
+void ExamApplication::MakeActiveCubeSolid()
+{
+    for (const auto& block : m_activePiece) {
+        SolidBlock solidBlock;
+        // Copy the grid coordinate from the active cube
+        solidBlock.gridCoordinate = block.gridCoordinate;
+        // Get the world coordinate to the new solid block by extracting it from the model matrix
+        solidBlock.worldCoordinate = block.worldCoordinate;
+        // Get color for block based on z position
+        solidBlock.color = GetColorForSolidBlock(solidBlock.gridCoordinate[2]);
+        // Add the solid block to the vector of solid blocks
+        m_solidBlocks.push_back(solidBlock);
+        // Reset the position of the active block
+    }
+    RespawnActiveBlock();
+}
+
+/**
+ * Checks to see if a grid coordinate is occupied by either 
+ * a wall or another solid block
+ */
+bool ExamApplication::IsOccupied(glm::ivec3 gridCoordinate)
+{
+    // Check edges of tunnel
+    if (gridCoordinate[0] < 0 || gridCoordinate[0] > 4 || 
+        gridCoordinate[1] < 0 || gridCoordinate[1] > 4 ||
+        gridCoordinate[2] < 0 || gridCoordinate[2] > 9) {
+            return true;
+        }
+    // Go trough all solid blocks and check for collision
+    for (const auto& block : m_solidBlocks) {
+        if (block.gridCoordinate == gridCoordinate) {
+            return true;
+        }
+    }
+    // No collision
+    return false;
+}
+
+/**
+ * Returns a color based on the block position in the tunnel
+ */
+glm::vec3 ExamApplication::GetColorForSolidBlock(int zPos)
+{
+    auto colorInt = zPos % 5;
+    glm::vec3 color;
+    switch (colorInt)
+    {
+    case 0:
+        color = glm::vec3(0.8, 0.2, 0.2); // Red
+        break;
+    case 1:
+        color = glm::vec3(0.2, 0.8, 0.2); // Green
+        break;
+    case 2:
+        color = glm::vec3(0.8, 0.2, 0.8); // Magenta
+        break;
+    case 3:
+        color = glm::vec3(0.8, 0.8, 0.2); // Yellow
+        break;
+    case 4:
+        color = glm::vec3(0.2, 0.8, 0.8); // Cyan
+        break;
+    default:
+        color = glm::vec3(1.0, 1.0, 1.0); // Fallback, white for now
+        break;
+    }
+    return color;
+}
+
+/**
+ * Updates lighting values based on the "suns" position outside the tunnel
+ */
+void ExamApplication::UpdateSun()
+{
+    float time = glfwGetTime() / 3;
+    float radius = 4.0f;               // distance from origin
+    m_sun.x = radius * cos(time);
+    m_sun.z = -5.0f;                   
+    m_sun.y = radius * sin(time);
+
+    float brightness = sin(time + 4.5f) + 0.5;
+    m_globalIllumination = std::clamp(brightness, 0.0f, 0.5f);
 }
 
 void ExamApplication::InputHandleTextureToggle(GLFWwindow *window)
@@ -318,273 +555,9 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow *window)
     keyWasPressed = keyIsPressed;
 }
 
-bool ExamApplication::TryToMoveActivePiece(glm::ivec3 gridDiff, glm::vec3 worldDiff)
-{
-    // Check for all blocks if we can move
-    for (const auto& block : m_activePiece) {
-        if (IsOccupied(block.gridCoordinate + gridDiff)){
-            return false;
-        }
-    }
-    //  Apply movement
-    for (auto& block : m_activePiece) {
-        block.gridCoordinate += gridDiff;
-        block.worldCoordinate += worldDiff;
-    }
-    return true;
-}
-
-void ExamApplication::RenderTunnel()
-{
-    m_tunnelShaderProgram->Bind();
-    m_backWallVAO->Bind();
-
-    // Common uniforms for all wals
-    m_tunnelShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
-    m_tunnelShaderProgram->UploadUniformBool("u_textureEnabled", m_textureEnabled);
-    m_tunnelShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
-    m_tunnelShaderProgram->UploadUniformFloat3("u_lightSourcePosition2", m_sun); // Sun moves around tunnel
-    m_tunnelShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_lightSourcePos); // Light follow the active cube
-    m_tunnelShaderProgram->UploadUniformFloat1("u_diffuseStr", glm::vec1(0.75f));
-    m_tunnelShaderProgram->UploadUniformFloat3("u_cameraPosition", m_camera->GetPosition());
-    m_tunnelShaderProgram->UploadUniformFloat1("u_specularStr", glm::vec1(0.5f));
-
-    // Draw the back wall
-    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrix", m_backWallModelMatrix);
-    m_tunnelShaderProgram->UploadUniformBool("u_usingInstancing", false);
-    m_tunnelShaderProgram->UploadUniformFloat2("u_GridSize", {5.0f, 5.0f});
-    RenderCommands::DrawIndex(m_backWallVAO, GL_TRIANGLES);
-
-    // Use instanced rendering to draw all side walls in one call
-    m_tunnelVAO->Bind();
-    m_tunnelShaderProgram->UploadUniformFloat2("u_GridSize", {5.0f, 10.0f});
-    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrices[0]", m_topWallModelMatrix);
-    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrices[1]", m_leftWallModelMatrix);
-    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrices[2]", m_rightWallModelMatrix);
-    m_tunnelShaderProgram->UploadUniformMat4("u_tunnelModelMatrices[3]", m_bottomWallModelMatrix);
-    m_tunnelShaderProgram->UploadUniformBool("u_usingInstancing", true);
-    RenderCommands::DrawIndexInstanced(m_tunnelVAO, GL_TRIANGLES, 4);
-}
-
-void ExamApplication::RenderActiveCube()
-{
-    if (m_activePiece.size() == 0)
-        return;
-
-    m_activeCubeShaderProgram->Bind();
-    m_activeCubeVAO->Bind();
-
-    // Common uniforms for active piece
-    m_activeCubeShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
-
-    // Upload all model matrices to the array
-    for (int i = 0; i < m_activePiece.size(); i++) {
-        glm::mat4 modelMatrix = glm::mat4(1.0f);
-        modelMatrix = glm::translate(modelMatrix, m_activePiece[i].worldCoordinate);
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
-        m_activeCubeShaderProgram->UploadUniformMat4("u_activeCubeModelMatrices[" + std::to_string(i) + "]", modelMatrix);
-    }
-    // Draw the whole array (4 pieces) at once
-    RenderCommands::DrawIndexInstanced(m_solidBlocksVAO, GL_TRIANGLES, m_activePiece.size());
-}
-
-void ExamApplication::RenderSolidBlocks()
-{
-    if (m_solidBlocks.size() == 0)
-        return;
-
-    m_solidBlocksShaderProgram->Bind();
-    m_solidBlocksVAO->Bind();
-    
-    m_solidBlocksShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
-    m_solidBlocksShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
-    m_solidBlocksShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
-    m_solidBlocksShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_lightSourcePos); // Light follow the active cube
-    m_solidBlocksShaderProgram->UploadUniformFloat3("u_lightSourcePosition2", m_sun); // Sun moves around tunnel
-    m_solidBlocksShaderProgram->UploadUniformFloat1("u_diffuseStr", glm::vec1(0.5f));
-    m_solidBlocksShaderProgram->UploadUniformFloat3("u_cameraPosition", m_camera->GetPosition());
-    m_solidBlocksShaderProgram->UploadUniformFloat1("u_specularStr", glm::vec1(1.0f));
-
-    for (const auto& block : m_solidBlocks){
-        // Draws each individual block. Did not have time to figure out instanced drawing for solid cubes
-        glm::mat4 solidBlockModelMatrix = glm::mat4(1.0f);
-        solidBlockModelMatrix = glm::translate(solidBlockModelMatrix, block.worldCoordinate);
-        solidBlockModelMatrix = glm::scale(solidBlockModelMatrix, glm::vec3(0.5f, 0.5, 0.5f));
-        m_solidBlocksShaderProgram->UploadUniformMat4("u_solidBlockModelMatrix", solidBlockModelMatrix);
-        m_solidBlocksShaderProgram->UploadUniformFloat3("u_blockColor", block.color);
-        RenderCommands::DrawIndex(m_solidBlocksVAO, GL_TRIANGLES);
-    } 
-}
 /**
- * Moves the active piece one unit every two seconds
+ * Input handler that decides which rotation to do
  */
-void ExamApplication::MoveActiveCube()
-{
-    double time = glfwGetTime();
-    if (time - m_activeCubeLastMoveTime >= 2.0f) {
-        bool canMove = TryToMoveActivePiece(glm::ivec3(0, 0, 1), glm::vec3(0.0f, 0.0f, -0.5f));
-        m_activeCubeLastMoveTime = glfwGetTime();
-        if (!canMove)
-            MakeActiveCubeSolid();
-        }
-}
-
-void ExamApplication::RespawnActiveBlock()
-{
-    // Clear the vector with pieces
-    m_activePiece.clear();
-
-    // Pick a random piece
-    int randomNum = rand() % 3;
-    switch (randomNum)
-    {
-    case 0:
-        MakeLPiece();
-        break;
-    case 1:
-        MakeTPiece();
-        break;
-    case 2:
-        MakeZPiece();
-        break;
-    default:
-        MakeLPiece();
-    }
-}
-
-bool ExamApplication::ShouldBecomeSolid(glm::ivec3 gridCoordinate)
-{
-    // If we are at end of tunnel, return true
-    if (gridCoordinate[2] >= 9) {
-        return true;
-    }
-    // Check one gridspace ahead of us
-    return IsOccupied(gridCoordinate + glm::ivec3(0, 0, 1));
-}
-
-void ExamApplication::MakeActiveCubeSolid()
-{
-    for (const auto& block : m_activePiece) {
-        SolidBlock solidBlock;
-        // Copy the grid coordinate from the active cube
-        solidBlock.gridCoordinate = block.gridCoordinate;
-        // Get the world coordinate to the new solid block by extracting it from the model matrix
-        solidBlock.worldCoordinate = block.worldCoordinate;
-        // Get color for block based on z position
-        solidBlock.color = GetColorForSolidBlock(solidBlock.gridCoordinate[2]);
-        // Add the solid block to the vector of solid blocks
-        m_solidBlocks.push_back(solidBlock);
-        // Reset the position of the active block
-    }
-    RespawnActiveBlock();
-}
-
-bool ExamApplication::IsOccupied(glm::ivec3 gridCoordinate)
-{
-    // Check edges of tunnel
-    if (gridCoordinate[0] < 0 || gridCoordinate[0] > 4 || 
-        gridCoordinate[1] < 0 || gridCoordinate[1] > 4 ||
-        gridCoordinate[2] < 0 || gridCoordinate[2] > 9) {
-            return true;
-        }
-    // Go trough all solid blocks and check for collision
-    for (const auto& block : m_solidBlocks) {
-        if (block.gridCoordinate == gridCoordinate) {
-            return true;
-        }
-    }
-    // No collision
-    return false;
-}
-
-glm::vec3 ExamApplication::GetColorForSolidBlock(int zPos)
-{
-    auto colorInt = zPos % 5;
-    glm::vec3 color;
-    switch (colorInt)
-    {
-    case 0:
-        color = glm::vec3(0.8, 0.2, 0.2); // Red
-        break;
-    case 1:
-        color = glm::vec3(0.2, 0.8, 0.2); // Green
-        break;
-    case 2:
-        color = glm::vec3(0.8, 0.2, 0.8); // Magenta
-        break;
-    case 3:
-        color = glm::vec3(0.8, 0.8, 0.2); // Yellow
-        break;
-    case 4:
-        color = glm::vec3(0.2, 0.8, 0.8); // Cyan
-        break;
-    default:
-        color = glm::vec3(1.0, 1.0, 1.0); // Fallback, white for now
-        break;
-    }
-    return color;
-}
-
-void ExamApplication::MakeLPiece()
-{
-    ActiveBlock block;
-    block.gridCoordinate = glm::ivec3(2, 3, 0);
-    block.worldCoordinate = glm::vec3(0.0f, 0.5f, 2.0f);
-    m_activePiece.push_back(block);
-
-    block.gridCoordinate = glm::ivec3(2, 2, 0);
-    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
-    m_activePiece.push_back(block);
-
-    block.gridCoordinate = glm::ivec3(2, 1, 0);
-    block.worldCoordinate = glm::vec3(0.0f, -0.5f, 2.0f);
-    m_activePiece.push_back(block);
-
-    block.gridCoordinate = glm::ivec3(1, 1, 0);
-    block.worldCoordinate = glm::vec3(-0.5f, -0.5f, 2.0f);
-    m_activePiece.push_back(block);
-}
-
-void ExamApplication::MakeTPiece()
-{
-    ActiveBlock block;
-    block.gridCoordinate = glm::ivec3(1, 2, 0);
-    block.worldCoordinate = glm::vec3(-0.5f, 0.0f, 2.0f);
-    m_activePiece.push_back(block);
-    
-    block.gridCoordinate = glm::ivec3(2, 2, 0);
-    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
-    m_activePiece.push_back(block);
-
-    block.gridCoordinate = glm::ivec3(3, 2, 0);
-    block.worldCoordinate = glm::vec3(0.5f, 0.0f, 2.0f);
-    m_activePiece.push_back(block);
-
-    block.gridCoordinate = glm::ivec3(2, 1, 0);
-    block.worldCoordinate = glm::vec3(0.0f, -0.5f, 2.0f);
-    m_activePiece.push_back(block);
-}
-
-void ExamApplication::MakeZPiece()
-{
-    ActiveBlock block;
-    block.gridCoordinate = glm::ivec3(1, 2, 0);
-    block.worldCoordinate = glm::vec3(-0.5f, 0.0f, 2.0f);
-    m_activePiece.push_back(block);
-
-    block.gridCoordinate = glm::ivec3(2, 3, 0);
-    block.worldCoordinate = glm::vec3(0.0f, 0.5f, 2.0f);
-    m_activePiece.push_back(block);
-
-    block.gridCoordinate = glm::ivec3(2, 2, 0);
-    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
-    m_activePiece.push_back(block);
-
-    block.gridCoordinate = glm::ivec3(3, 3, 0);
-    block.worldCoordinate = glm::vec3(0.5f, 0.5f, 2.0f);
-    m_activePiece.push_back(block);
-}
-
 void ExamApplication::InputHandleRotation(GLFWwindow *window)
 {
     static bool keyWasPressed = false;
@@ -763,15 +736,69 @@ void ExamApplication::YawActivePiece(bool positive)
         );
     }  
 }
-
-void ExamApplication::UpdateSun()
+/**
+ * Sets up the structue for a L piece
+ */
+void ExamApplication::MakeLPiece()
 {
-    float time = glfwGetTime() / 3;
-    float radius = 4.0f;               // distance from origin
-    m_sun.x = radius * cos(time);
-    m_sun.z = -5.0f;                   
-    m_sun.y = radius * sin(time);
+    ActiveBlock block;
+    block.gridCoordinate = glm::ivec3(2, 3, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.5f, 2.0f);
+    m_activePiece.push_back(block);
 
-    float brightness = sin(time + 4.5f) + 0.5;
-    m_globalIllumination = std::clamp(brightness, 0.0f, 0.5f);
+    block.gridCoordinate = glm::ivec3(2, 2, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(2, 1, 0);
+    block.worldCoordinate = glm::vec3(0.0f, -0.5f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(1, 1, 0);
+    block.worldCoordinate = glm::vec3(-0.5f, -0.5f, 2.0f);
+    m_activePiece.push_back(block);
+}
+/**
+ * Sets up the structue for a T piece
+ */
+void ExamApplication::MakeTPiece()
+{
+    ActiveBlock block;
+    block.gridCoordinate = glm::ivec3(1, 2, 0);
+    block.worldCoordinate = glm::vec3(-0.5f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+    
+    block.gridCoordinate = glm::ivec3(2, 2, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(3, 2, 0);
+    block.worldCoordinate = glm::vec3(0.5f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(2, 1, 0);
+    block.worldCoordinate = glm::vec3(0.0f, -0.5f, 2.0f);
+    m_activePiece.push_back(block);
+}
+/**
+ * Sets up the structue for a Z piece
+ */
+void ExamApplication::MakeZPiece()
+{
+    ActiveBlock block;
+    block.gridCoordinate = glm::ivec3(1, 2, 0);
+    block.worldCoordinate = glm::vec3(-0.5f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(2, 3, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.5f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(2, 2, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(3, 3, 0);
+    block.worldCoordinate = glm::vec3(0.5f, 0.5f, 2.0f);
+    m_activePiece.push_back(block);
 }
