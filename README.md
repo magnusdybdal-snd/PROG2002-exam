@@ -1,6 +1,11 @@
-# Reference
+# PROG2002 Exam
 
+Cpp file got pretty large in the end
+Due to time restrictions and the fact that the project has ben developing for the past 72 hours there is alot of repeat code.
+Ive tried to put the least important code / functions that is mostly boilerplate and input management in the bottom.
 
+Following is a summary / copy/pase from the issues for easier reading. Note that these were written as the exam progressed,
+so some of the earlier tasks solutions might not match what you see in the video.
 
 ## Requirements implemented
 
@@ -109,3 +114,8 @@ Then we calculate the new values for the axises we are not rotating around by mu
 (x, y) → (-y, x). (this also works for the other axis, just swap out the one we are rotating around).
 
 After checking if we can rotate for all blocks using the same collision check function on the new positions we apply the movement if no collision is detected.
+
+**R 6.1B**
+added a sun as a vec3 and a function that uses cos and sin to rotate it around the x and y axis
+Uploaded another light source to tunnel and solid block fragment shaders. in the calculation for light we just add both diffuse light sources together
+Also let sun position affect the global illumination
