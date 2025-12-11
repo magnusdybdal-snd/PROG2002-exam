@@ -230,8 +230,9 @@ void ExamApplication::HandleInput()
 
     InputHandleBlockMovement(window);
     InputHandleTextureToggle(window);
+    InputHandleRotation(window);
 
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 }
@@ -658,4 +659,78 @@ void ExamApplication::MakeZPiece()
     block.gridCoordinate = glm::ivec3(3, 3, 0);
     block.worldCoordinate = glm::vec3(0.5f, 0.5f, 2.0f);
     m_activePiece.push_back(block);
+}
+
+void ExamApplication::InputHandleRotation(GLFWwindow *window)
+{
+    static bool keyWasPressed = false;
+    bool keyIsPressed = false;  
+
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
+        if (!keyWasPressed) {
+            PitchActivePiece(glfwGetKey(window, GLFW_KEY_Q == GLFW_PRESS));
+        }
+        keyIsPressed = true;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
+        if (!keyWasPressed) {
+            RollActivePiece(glfwGetKey(window, GLFW_KEY_W == GLFW_PRESS));
+        }
+        keyIsPressed = true;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
+        if (!keyWasPressed) {
+            YawActivePiece(glfwGetKey(window, GLFW_KEY_E == GLFW_PRESS));
+        }
+        keyIsPressed = true;
+    }
+    
+    keyWasPressed = keyIsPressed;
+}
+
+void ExamApplication::PitchActivePiece(bool positive)
+{
+    // Set direction based on bool flag
+    int direction = positive ? 1 : -1;
+
+    // Choose a pivot point. 2nd block in the piece, should be middle
+    glm::ivec3 pivotPointGridCoordinate = m_activePiece[1].gridCoordinate;
+    glm::vec3 pivotPointWorldCoordinate = m_activePiece[1].worldCoordinate;
+
+    // Coordinates to rotate to
+    glm::ivec3 newGridCoordinates;
+    glm::vec3 newWordlCoordinates;
+
+    // Go trough each block and find their relative position compared to pivot point
+    for (const auto& block : m_activePiece) {
+        glm::ivec3 relativeGridCoordinates = block.gridCoordinate - pivotPointGridCoordinate;
+        glm::vec3 relativeWorldCoordinates = block.worldCoordinate - pivotPointWorldCoordinate;
+
+        int newZ = block.gridCoordinate[2] + (relativeGridCoordinates[1] * direction);
+        int newY = block.gridCoordinate[1] + (relativeGridCoordinates[2] * direction);
+
+        newGridCoordinates = glm::ivec3(block.gridCoordinate[0], newY, newZ);
+        newWordlCoordinates = glm::vec3(block.worldCoordinate[0], static_cast<float>(newY) / 2.0f, static_cast<float>(newZ) / 2.0f);
+
+        // If new position is occupied we return early
+        if (IsOccupied(newGridCoordinates)){
+            return;
+        }
+    }
+
+    // Apply the rotation
+    for (auto& block : m_activePiece) {
+        block.gridCoordinate = newGridCoordinates;
+        block.worldCoordinate = newWordlCoordinates;
+    }
+}
+
+void ExamApplication::RollActivePiece(bool positive)
+{
+    
+}
+
+void ExamApplication::YawActivePiece(bool positive)
+{
+    
 }
