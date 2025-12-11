@@ -36,7 +36,7 @@ void main()
     float diffuseStrength = max(dot(lightDirection, v_normal.xyz), 0.0) * u_diffuseStr;
     // Diffuse light calculations from sun
     vec3 lightDirection2 = normalize(vec3(u_lightSourcePosition2 - v_fragPos.xyz));
-    float diffuseStrength2 = max(dot(lightDirection2, v_normal.xyz), 0.0) * u_diffuseStr / 4.0;
+    float diffuseStrength2 = max(dot(lightDirection2, v_normal.xyz), 0.0) * u_diffuseStr / 2.0;
 
     // Specualr illumination
     vec3 reflectedLight = normalize(reflect(-lightDirection, v_normal.xyz));
