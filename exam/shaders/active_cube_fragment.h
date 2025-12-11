@@ -13,7 +13,7 @@ out vec4 fragColor;
 
 void main()
 {
-    vec3 blockColor = vec3(0.0, 1.0, 1.0);
+    vec3 blockColor = vec3(1.0, 0.0, 1.0);
 
     // Only apply lighting to the rgb values
     fragColor = vec4(blockColor, 0.3);

@@ -2,92 +2,110 @@
 
 
 
-## Getting started
+## Requirements implemented
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+**R 1.1**
+Since the side walls are the same size we use one VAO for them and another VAO for the back wall. Each wall is given its place by using seperate model matrices. Added Instanced rendering to the rendering tools we developed during assignment to use instanced drawing for the 4 side walls. Uploaded the matrices to an array in shader and used opengl gl_InstanceID to draw in two draw calls (back wall and other walls)
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+**R 1.2**
+Changed window size in constructor. To ensure game is centered camera is looking at origin, where all the pieces is moved in relation from.
+Note: Misread the way tasks where split up. All tasks for task 1 was done in one branch, therefore no branch connected to this issue, same goes for task 1.3
 
-## Add your files
+**R 1.3**
+The color is set to green directly in the shader since it will be static for the whole game. To create the borders I have used blending to display only the edges with alpha 1.0, the rest of the square has alpha 0.0.
+This is done in the fragment shader by setting a border width and using step to make a hard cutoff from 0.0 to 1.0 whenever we are within the borders coordinates.
+Note: Misread the way tasks where split up. All tasks for task 1 was done in one branch, therefore no branch connected to this issue.
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+**R 2.1**
+Used the geometric tool UnitCube made during assignment to make one unit cube with super simple shader (semi transparent). Changed some of the values used to construct my tube so that it became easier to place the cube within the grid spaces / navigational grid. Placed cube in front, bottom, center
 
-```
-cd existing_repo
-git remote add origin https://git.gvk.idi.ntnu.no/course/prog2002/autumn_2025/exam_autumn/reference.git
-git branch -M main
-git push -uf origin main
-```
+**R 2.2**
+Not much to say here. Changed color to something pleasing and made it transparent.
 
-## Integrate with your tools
+**R 2.3**
+Reused movement system implemented in assignemnt checking for arrow key presses
 
-- [ ] [Set up project integrations](https://git.gvk.idi.ntnu.no/course/prog2002/autumn_2025/exam_autumn/reference/-/settings/integrations)
+**R 2.4**
+Added a check on X press and applied transform to the cube in negative z direction
+For the space key I added a variable to the cube to keep track of its z position within the grid/tunnel, then calculate the distance to the end and apply that transformation.
 
-## Collaborate with your team
+The movement every 2 sec uses another member variable that keeps track of the time since last movement and simply applies one transform every time the timer exceeds 2 seconds using glfwGetTime()
+Additionally made it so when pressing X the timer resets, so we dont get double moves that would make gameplay frustrating.
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+**R 2.5**
+Added glm::ivec3 to active block to keep track of grid position in tunnel, simply checking before allowing movement by keys.
+Added a new shader/VAO setup for solid blocks. 
 
-## Test and Deploy
+When you would hit the wall we call a helper function
+void ExamApplication::MakeActiveCubeSolid() makes an instance of a solid block that is defined in the h file and copies over the attributes it needs from the active block. 
 
-Use the built-in continuous integration in GitLab.
+Color is decided with a modulo within another helper function
+glm::vec3 ExamApplication::GetColorForSolidBlock(int zPos)
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+**R 2.6**
+To respawn the active block we simply move it to the start position when it collides
+To detect collision and make block solid I made two functions
 
-***
+One detects if a coordinate is occupied, handles both walls and solid blocks
+The other one determines if a block should become solid on the next move. This makes it so we can become solid on z axis collision but restrict movement on x and y if a block is in the way.
 
-# Editing this README
+For the spacebar key press we use the same system but we have to go trough every tile from the active block, all the way to the wall to check for collisions on the way
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+**R 3.1**
+Found textures for walls and cubes and uploaded to resources/textures
 
-## Suggestions for a good README
+Modified tunnel verticies and bufferlayout to also include texture coordinates using the Geometric tool from assignment
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Used texture manager from framework made in assignment to initiate and upload the textures.
 
-## Name
-Choose a self-explaining name for your project.
+Modified shaders to use texture coordinates with sampler to generate texture color and blend it using mix.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+To preserve the borders of the tunnel that I made earlier in the exam I did 2x mix in the wall fragment shader. One to blend the texture and the color, and then another using the texture blend and the border color with a hard cutoff mix (0.0 or 1.0)
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+This makes it so the borders have no texture (100% blend) and the textureblend has no border color in it (0% blend)
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+**R 3.2**
+Added a global bool and input check for T press. The variable is uploaded to the wall and solid block fragment shader as a uniform.
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+In the shaders we check for the flag and decides if the fragcolor should be a solid color or a blend with texture.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Note: This was completed in the last issue together with textures, therefore only one commit on this branch / issue.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+**R 4.1**
+Implemented lighting using the PHONG model:
+- ambient light / background light
+- diffuse lighting with the active block as light source       
+- specular light with the active block as light source
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+To make the solid blocks look more metallic than the walls of the tunnel I upped the shine factor and specular strength in the shaders for the solid blocks.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+Updated the gemoetric tool used for the cubes to include normals as well and updated the buffer layout.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+Had some trouble when adding the light in the final frag color in the shaders. This was because I used blending to make the walls transparent when not in texture mode. because blending is enabled I cannot just multiply the vec4 with the lighting value as we did in the assignment because this will affect the alpha as well. The solution was to extract the rgb values, multiply with those and then add the alpha in after.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+**R 5.1**
+Made 3 functions to setup the arrangment of blocks to make the shapes, still using the 1x1 block.
+Refactored all movement inputs to move the whole piece. This is done by directly manipulating their world coordinates and grid position (struct members).
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+Used instanced rendering for the active piece. Always 4 pieces so can use the same method as for walls. Translation when making the matrices can then directly use the worldgrid position of each cube.
 
-## License
-For open source projects, say how it is licensed.
+Finally refactored the respawning of pieces to randomize which shape is spawned. Also changed how blocks solidifies by wrapping the old functionality in a for loop and using the data already stored within each block of the complex piece (worldpos and gridpos)
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+**R 5.2**
+This has mostly been solved in previous issues. The function used for solidifying blocks is just wrapped in a for loop iterating trough the blocks in the activePiece vector
+
+Changed rotation of initial L piece to test, and the blocks seem to take the correct color.
+Solid blocks still uses 1 draw call each.
+
+**R 5.3 and 5.4**
+5.3 and 5.4
+Added checks for q,w,e,a,s,d in input handler function. They each call the respective function for pitch, roll yaw with true/false for direction.
+
+I first tried to apply rotation by using glm::rotate but that would not work well. Then I realized im already rendering based on wolrd position that every active block is assigned and decided to manipulate them directly.
+
+First I decide on a pivot point in the piece. thats the 2nd block in the vector, which is set as the most central block in the piece. I then calculate the relative difference in grid space to that block.
+
+Then we calculate the new values for the axises we are not rotating around by multiplying the opposite coordinate with the direction using this formula
+(x, y) → (-y, x). (this also works for the other axis, just swap out the one we are rotating around).
+
+After checking if we can rotate for all blocks using the same collision check function on the new positions we apply the movement if no collision is detected.
