@@ -97,6 +97,12 @@ private:
     void HandleInput();
     void InputHandleBlockMovement(GLFWwindow *window);
     void InputHandleTextureToggle(GLFWwindow *window);
+    void InputHandleRotation(GLFWwindow *window);
+
+    // ===== ROTATION =====
+    void PitchActivePiece(bool positive);
+    void RollActivePiece(bool positive);
+    void YawActivePiece(bool positive);
 
     void MoveActiveCube();
     void MakeActiveCubeSolid();

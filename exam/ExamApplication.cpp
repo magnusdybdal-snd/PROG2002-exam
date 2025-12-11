@@ -84,7 +84,7 @@ unsigned ExamApplication::Run()
         MoveActiveCube();
         HandleInput();
 
-        m_lightSourcePos = glm::vec3(m_cubeModelMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        m_lightSourcePos = glm::vec3(m_activePiece[1].worldCoordinate);
 
         RenderTunnel();
         RenderSolidBlocks();
@@ -230,8 +230,9 @@ void ExamApplication::HandleInput()
 
     InputHandleBlockMovement(window);
     InputHandleTextureToggle(window);
+    InputHandleRotation(window);
 
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 }
@@ -445,33 +446,8 @@ void ExamApplication::RenderSolidBlocks()
     m_solidBlocksShaderProgram->UploadUniformFloat3("u_cameraPosition", m_camera->GetPosition());
     m_solidBlocksShaderProgram->UploadUniformFloat1("u_specularStr", glm::vec1(1.0f));
 
-    // // OpenGL uses column - major ordering : http://www.theamazingking.com/ogl-matrix.php
-    // // Upload all matrices and colors to array used for instanced drawing
-    // std::vector<float> data;
-
-    // for (const auto& block : m_solidBlocks) {
-    //     glm::mat4 modelMatrix = glm::mat4(1.0f);
-    //     modelMatrix = glm::translate(modelMatrix, block.worldCoordinate);
-    //     modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
-
-    //     // Extract model matrix values in COLUMN - MAJOR order
-    //     for (int col = 0; col < 4; col++) {
-    //         for (int row = 0; row < 4; row++) {
-    //             data.push_back(modelMatrix[col][row]);
-    //         }
-    //     }
-    //     // Then we add all the color values
-    //     data.push_back(block.color.x);
-    //     data.push_back(block.color.y);
-    //     data.push_back(block.color.z);
-
-    //     m_solidBlocksShaderProgram->UploadUniformMat4("u_solidBlockModelMatrices[" + std::to_string(i) + "]", modelMatrix);
-    //     m_solidBlocksShaderProgram->UploadUniformFloat3("u_blockColors[" + std::to_string(i) + "]", m_solidBlocks[i].color); 
-    // }
-    // RenderCommands::DrawIndexInstanced(m_solidBlocksVAO, GL_TRIANGLES, m_solidBlocks.size());
-
     for (const auto& block : m_solidBlocks){
-        // Temporary draw call for each one
+        // Draws each individual block. Did not have time to figure out instanced drawing for solid cubes
         glm::mat4 solidBlockModelMatrix = glm::mat4(1.0f);
         solidBlockModelMatrix = glm::translate(solidBlockModelMatrix, block.worldCoordinate);
         solidBlockModelMatrix = glm::scale(solidBlockModelMatrix, glm::vec3(0.5f, 0.5, 0.5f));
@@ -603,32 +579,32 @@ glm::vec3 ExamApplication::GetColorForSolidBlock(int zPos)
 void ExamApplication::MakeLPiece()
 {
     ActiveBlock block;
-    block.gridCoordinate = glm::ivec3(1, 2, 0);
-    block.worldCoordinate = glm::vec3(-0.5f, 0.0f, 2.0f);
+    block.gridCoordinate = glm::ivec3(2, 3, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.5f, 2.0f);
     m_activePiece.push_back(block);
 
     block.gridCoordinate = glm::ivec3(2, 2, 0);
     block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
     m_activePiece.push_back(block);
 
-    block.gridCoordinate = glm::ivec3(2, 2, 1);
-    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 1.5f);
+    block.gridCoordinate = glm::ivec3(2, 1, 0);
+    block.worldCoordinate = glm::vec3(0.0f, -0.5f, 2.0f);
     m_activePiece.push_back(block);
 
-    block.gridCoordinate = glm::ivec3(2, 2, 2);
-    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 1.0f);
+    block.gridCoordinate = glm::ivec3(1, 1, 0);
+    block.worldCoordinate = glm::vec3(-0.5f, -0.5f, 2.0f);
     m_activePiece.push_back(block);
 }
 
 void ExamApplication::MakeTPiece()
 {
     ActiveBlock block;
-    block.gridCoordinate = glm::ivec3(2, 2, 0);
-    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
-    m_activePiece.push_back(block);
-
     block.gridCoordinate = glm::ivec3(1, 2, 0);
     block.worldCoordinate = glm::vec3(-0.5f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+    
+    block.gridCoordinate = glm::ivec3(2, 2, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
     m_activePiece.push_back(block);
 
     block.gridCoordinate = glm::ivec3(3, 2, 0);
@@ -647,15 +623,192 @@ void ExamApplication::MakeZPiece()
     block.worldCoordinate = glm::vec3(-0.5f, 0.0f, 2.0f);
     m_activePiece.push_back(block);
 
-    block.gridCoordinate = glm::ivec3(2, 2, 0);
-    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
-    m_activePiece.push_back(block);
-
     block.gridCoordinate = glm::ivec3(2, 3, 0);
     block.worldCoordinate = glm::vec3(0.0f, 0.5f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(2, 2, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
     m_activePiece.push_back(block);
 
     block.gridCoordinate = glm::ivec3(3, 3, 0);
     block.worldCoordinate = glm::vec3(0.5f, 0.5f, 2.0f);
     m_activePiece.push_back(block);
+}
+
+void ExamApplication::InputHandleRotation(GLFWwindow *window)
+{
+    static bool keyWasPressed = false;
+    bool keyIsPressed = false;  
+
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS){
+        if (!keyWasPressed) {
+            PitchActivePiece(true);
+        }
+        keyIsPressed = true;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
+        if (!keyWasPressed) {
+            PitchActivePiece(false);
+        }
+        keyIsPressed = true;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
+        if (!keyWasPressed) {
+            RollActivePiece(true);
+        }
+        keyIsPressed = true;
+    }
+        else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
+        if (!keyWasPressed) {
+            RollActivePiece(false);
+        }
+        keyIsPressed = true;
+    }
+        else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS){
+        if (!keyWasPressed) {
+            YawActivePiece(true);
+        }
+        keyIsPressed = true;
+    }
+        else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
+        if (!keyWasPressed) {
+            YawActivePiece(false);
+        }
+        keyIsPressed = true;
+    }
+    
+    keyWasPressed = keyIsPressed;
+}
+
+void ExamApplication::PitchActivePiece(bool positive)
+{
+    // Set direction based on bool flag
+    int direction = positive ? 1 : -1;
+
+    // Choose a pivot point. 2nd block in the piece, should be middle
+    glm::ivec3 pivotPointGridCoordinate = m_activePiece[1].gridCoordinate;
+
+    // Coordinates to rotate to for each block
+    std::vector<glm::ivec3> rotatedGridCoordinates;
+
+    // Go trough each block and find their relative position compared to pivot point
+    for (const auto& block : m_activePiece) {
+        glm::ivec3 relativeGridCoordinate = block.gridCoordinate - pivotPointGridCoordinate;
+
+        /* Get the new values. The axis we rotate around does not change for any block
+         * Relative position on the other two axis swaps */
+        int newY = (-relativeGridCoordinate[2] * direction);
+        int newZ = ( relativeGridCoordinate[1] * direction); 
+
+        // Add the new relative position to the pivot point coordinate to place it back on the grid
+        glm::ivec3 rotated = pivotPointGridCoordinate + glm::ivec3(relativeGridCoordinate[0], newY, newZ); 
+        
+        // Check if new position is occupied
+        if (IsOccupied(rotated)){
+            return;
+        }
+        // Add coordinate to vector
+        rotatedGridCoordinates.push_back(rotated);
+    }
+
+    // Apply the rotation
+    for (int i = 0; i < m_activePiece.size(); i++) {
+        m_activePiece[i].gridCoordinate = rotatedGridCoordinates[i];
+        // World coordinates are half the size of grid coordinates
+        // They also have an offset from origin
+        m_activePiece[i].worldCoordinate = glm::vec3(
+            (rotatedGridCoordinates[i].x - 2) / 2.0f,
+            (rotatedGridCoordinates[i].y - 2) / 2.0f,
+            (2 - rotatedGridCoordinates[i].z) / 2.0f
+        );
+    }
+}
+
+void ExamApplication::RollActivePiece(bool positive)
+{
+    // Set direction based on bool flag
+    int direction = positive ? 1 : -1;
+
+    // Choose a pivot point. 2nd block in the piece, should be middle
+    glm::ivec3 pivotPointGridCoordinate = m_activePiece[1].gridCoordinate;
+
+    // Coordinates to rotate to for each block
+    std::vector<glm::ivec3> rotatedGridCoordinates;
+
+    // Go trough each block and find their relative position compared to pivot point
+    for (const auto& block : m_activePiece) {
+        glm::ivec3 relativeGridCoordinate = block.gridCoordinate - pivotPointGridCoordinate;
+
+        /* Get the new values. The axis we rotate around does not change for any block
+         * Relative position on the other two axis swaps */
+        int newX = (-relativeGridCoordinate[1] * direction);
+        int newY = ( relativeGridCoordinate[0] * direction); 
+
+        // Add the new relative position to the pivot point coordinate to place it back on the grid
+        glm::ivec3 rotated = pivotPointGridCoordinate + glm::ivec3(newX, newY, relativeGridCoordinate[2]); 
+        
+        // Check if new position is occupied
+        if (IsOccupied(rotated)){
+            return;
+        }
+        // Add coordinate to vector
+        rotatedGridCoordinates.push_back(rotated);
+    }
+
+    // Apply the rotation
+    for (int i = 0; i < m_activePiece.size(); i++) {
+        m_activePiece[i].gridCoordinate = rotatedGridCoordinates[i];
+        // World coordinates are half the size of grid coordinates
+        // They also have an offset from origin
+        m_activePiece[i].worldCoordinate = glm::vec3(
+            (rotatedGridCoordinates[i].x - 2) / 2.0f,
+            (rotatedGridCoordinates[i].y - 2) / 2.0f,
+            (2 - rotatedGridCoordinates[i].z) / 2.0f
+        );
+    }
+}
+
+void ExamApplication::YawActivePiece(bool positive)
+{
+    // Set direction based on bool flag
+    int direction = positive ? 1 : -1;
+
+    // Choose a pivot point. 2nd block in the piece, should be middle
+    glm::ivec3 pivotPointGridCoordinate = m_activePiece[1].gridCoordinate;
+
+    // Coordinates to rotate to for each block
+    std::vector<glm::ivec3> rotatedGridCoordinates;
+
+    // Go trough each block and find their relative position compared to pivot point
+    for (const auto& block : m_activePiece) {
+        glm::ivec3 relativeGridCoordinate = block.gridCoordinate - pivotPointGridCoordinate;
+
+        /* Get the new values. The axis we rotate around does not change for any block
+         * Relative position on the other two axis swaps */
+        int newX = (-relativeGridCoordinate[2] * direction);
+        int newZ = ( relativeGridCoordinate[0] * direction); 
+
+        // Add the new relative position to the pivot point coordinate to place it back on the grid
+        glm::ivec3 rotated = pivotPointGridCoordinate + glm::ivec3(newX, relativeGridCoordinate[1], newZ); 
+        
+        // Check if new position is occupied
+        if (IsOccupied(rotated)){
+            return;
+        }
+        // Add coordinate to vector
+        rotatedGridCoordinates.push_back(rotated);
+    }
+
+    // Apply the rotation
+    for (int i = 0; i < m_activePiece.size(); i++) {
+        m_activePiece[i].gridCoordinate = rotatedGridCoordinates[i];
+        // World coordinates are half the size of grid coordinates
+        // They also have an offset from origin
+        m_activePiece[i].worldCoordinate = glm::vec3(
+            (rotatedGridCoordinates[i].x - 2) / 2.0f,
+            (rotatedGridCoordinates[i].y - 2) / 2.0f,
+            (2 - rotatedGridCoordinates[i].z) / 2.0f
+        );
+    }  
 }
