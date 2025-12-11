@@ -280,22 +280,10 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow *window)
     }
     else if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
         if (!keyWasPressed) {
-            bool canMove = true;
-            for (const auto& block : m_activePiece) {
-                if (ShouldBecomeSolid(block.gridCoordinate)) {
-                    canMove = false;
-                    break;
-                }
-            }
-            if (canMove) {
-                m_activeCubeLastMoveTime = glfwGetTime();
-                for (auto& block: m_activePiece) {
-                    block.gridCoordinate[2]++;
-                    block.worldCoordinate += glm::vec3(0.0f, 0.0f, -0.5f);
-                }
-            } else {
+            bool canMove = TryToMoveActivePiece(glm::ivec3(0, 0, 1), glm::vec3(0.0f, 0.0f, -0.5f));
+            m_activeCubeLastMoveTime = glfwGetTime();
+            if (!canMove)
                 MakeActiveCubeSolid();
-            }
         }
         keyIsPressed = true;
     }
@@ -332,11 +320,13 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow *window)
 
 bool ExamApplication::TryToMoveActivePiece(glm::ivec3 gridDiff, glm::vec3 worldDiff)
 {
+    // Check for all blocks if we can move
     for (const auto& block : m_activePiece) {
         if (IsOccupied(block.gridCoordinate + gridDiff)){
             return false;
         }
     }
+    //  Apply movement
     for (auto& block : m_activePiece) {
         block.gridCoordinate += gridDiff;
         block.worldCoordinate += worldDiff;
@@ -353,7 +343,7 @@ void ExamApplication::RenderTunnel()
     m_tunnelShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
     m_tunnelShaderProgram->UploadUniformBool("u_textureEnabled", m_textureEnabled);
     m_tunnelShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
-    m_tunnelShaderProgram->UploadUniformFloat3("u_lightSourcePosition2", m_sun); // Light follow the active cube
+    m_tunnelShaderProgram->UploadUniformFloat3("u_lightSourcePosition2", m_sun); // Sun moves around tunnel
     m_tunnelShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_lightSourcePos); // Light follow the active cube
     m_tunnelShaderProgram->UploadUniformFloat1("u_diffuseStr", glm::vec1(0.75f));
     m_tunnelShaderProgram->UploadUniformFloat3("u_cameraPosition", m_camera->GetPosition());
@@ -410,8 +400,8 @@ void ExamApplication::RenderSolidBlocks()
     m_solidBlocksShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
     m_solidBlocksShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
     m_solidBlocksShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_lightSourcePos); // Light follow the active cube
-    m_solidBlocksShaderProgram->UploadUniformFloat3("u_lightSourcePosition2", m_sun); // Light follow the active cube
-    m_solidBlocksShaderProgram->UploadUniformFloat1("u_diffuseStr", glm::vec1(0.5f)); // Hard coded, make var if want to change
+    m_solidBlocksShaderProgram->UploadUniformFloat3("u_lightSourcePosition2", m_sun); // Sun moves around tunnel
+    m_solidBlocksShaderProgram->UploadUniformFloat1("u_diffuseStr", glm::vec1(0.5f));
     m_solidBlocksShaderProgram->UploadUniformFloat3("u_cameraPosition", m_camera->GetPosition());
     m_solidBlocksShaderProgram->UploadUniformFloat1("u_specularStr", glm::vec1(1.0f));
 
@@ -425,28 +415,18 @@ void ExamApplication::RenderSolidBlocks()
         RenderCommands::DrawIndex(m_solidBlocksVAO, GL_TRIANGLES);
     } 
 }
-
+/**
+ * Moves the active piece one unit every two seconds
+ */
 void ExamApplication::MoveActiveCube()
 {
     double time = glfwGetTime();
     if (time - m_activeCubeLastMoveTime >= 2.0f) {
-        bool canMove = true;
-        for (const auto& block : m_activePiece) {
-            if(ShouldBecomeSolid(block.gridCoordinate)) {
-                canMove = false;
-                break;
-            }
-        }
-        if (canMove) {
-            for (auto& block : m_activePiece){
-                block.gridCoordinate[2]++;
-                block.worldCoordinate += glm::vec3(0.0f, 0.0f, -0.5f);
-            } 
-            m_activeCubeLastMoveTime = time;
-        } else {
+        bool canMove = TryToMoveActivePiece(glm::ivec3(0, 0, 1), glm::vec3(0.0f, 0.0f, -0.5f));
+        m_activeCubeLastMoveTime = glfwGetTime();
+        if (!canMove)
             MakeActiveCubeSolid();
         }
-    }
 }
 
 void ExamApplication::RespawnActiveBlock()
