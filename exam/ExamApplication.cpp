@@ -725,7 +725,7 @@ void ExamApplication::PitchActivePiece(bool positive)
         m_activePiece[i].worldCoordinate = glm::vec3(
             (rotatedGridCoordinates[i].x - 2) / 2.0f,
             (rotatedGridCoordinates[i].y - 2) / 2.0f,
-            (2 - rotatedGridCoordinates[i].z) / 2.0f
+            2.0f - (rotatedGridCoordinates[i].z) / 2.0f
         );
     }
 }
@@ -769,7 +769,7 @@ void ExamApplication::RollActivePiece(bool positive)
         m_activePiece[i].worldCoordinate = glm::vec3(
             (rotatedGridCoordinates[i].x - 2) / 2.0f,
             (rotatedGridCoordinates[i].y - 2) / 2.0f,
-            (2 - rotatedGridCoordinates[i].z) / 2.0f
+            2.0f - (rotatedGridCoordinates[i].z) / 2.0f
         );
     }
 }
@@ -813,7 +813,7 @@ void ExamApplication::YawActivePiece(bool positive)
         m_activePiece[i].worldCoordinate = glm::vec3(
             (rotatedGridCoordinates[i].x - 2) / 2.0f,
             (rotatedGridCoordinates[i].y - 2) / 2.0f,
-            (2 - rotatedGridCoordinates[i].z) / 2.0f
+            2.0f - (rotatedGridCoordinates[i].z) / 2.0f
         );
     }  
 }
