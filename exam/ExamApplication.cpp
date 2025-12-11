@@ -678,15 +678,27 @@ void ExamApplication::InputHandleRotation(GLFWwindow *window)
         }
         keyIsPressed = true;
     }
-    else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
+    else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
         if (!keyWasPressed) {
-            RollActivePiece(glfwGetKey(window, GLFW_KEY_W == GLFW_PRESS));
+            RollActivePiece(true);
         }
         keyIsPressed = true;
     }
-    else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
+        else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
         if (!keyWasPressed) {
-            YawActivePiece(glfwGetKey(window, GLFW_KEY_E == GLFW_PRESS));
+            RollActivePiece(false);
+        }
+        keyIsPressed = true;
+    }
+        else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS){
+        if (!keyWasPressed) {
+            YawActivePiece(true);
+        }
+        keyIsPressed = true;
+    }
+        else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
+        if (!keyWasPressed) {
+            YawActivePiece(false);
         }
         keyIsPressed = true;
     }
