@@ -821,12 +821,12 @@ void ExamApplication::YawActivePiece(bool positive)
 
 void ExamApplication::UpdateSun()
 {
-    float time = glfwGetTime() / 5;
+    float time = glfwGetTime() / 3;
     float radius = 10.0f;               // distance from origin
     m_sun.x = radius * cos(time);
     m_sun.z = -5.0f;                   
     m_sun.y = radius * sin(time);
 
-    float brightness = -sin(time);
-    m_globalIllumination = std::clamp(brightness, 0.1f, 0.7f);
+    float brightness = sin(time) + .25f;
+    m_globalIllumination = std::clamp(brightness, 0.1f, 0.6f);
 }
