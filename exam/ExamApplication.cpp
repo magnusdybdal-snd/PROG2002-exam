@@ -84,7 +84,7 @@ unsigned ExamApplication::Run()
         MoveActiveCube();
         HandleInput();
 
-        m_lightSourcePos = glm::vec3(m_cubeModelMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        m_lightSourcePos = glm::vec3(m_activePiece[1].worldCoordinate);
 
         RenderTunnel();
         RenderSolidBlocks();
@@ -446,33 +446,8 @@ void ExamApplication::RenderSolidBlocks()
     m_solidBlocksShaderProgram->UploadUniformFloat3("u_cameraPosition", m_camera->GetPosition());
     m_solidBlocksShaderProgram->UploadUniformFloat1("u_specularStr", glm::vec1(1.0f));
 
-    // // OpenGL uses column - major ordering : http://www.theamazingking.com/ogl-matrix.php
-    // // Upload all matrices and colors to array used for instanced drawing
-    // std::vector<float> data;
-
-    // for (const auto& block : m_solidBlocks) {
-    //     glm::mat4 modelMatrix = glm::mat4(1.0f);
-    //     modelMatrix = glm::translate(modelMatrix, block.worldCoordinate);
-    //     modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
-
-    //     // Extract model matrix values in COLUMN - MAJOR order
-    //     for (int col = 0; col < 4; col++) {
-    //         for (int row = 0; row < 4; row++) {
-    //             data.push_back(modelMatrix[col][row]);
-    //         }
-    //     }
-    //     // Then we add all the color values
-    //     data.push_back(block.color.x);
-    //     data.push_back(block.color.y);
-    //     data.push_back(block.color.z);
-
-    //     m_solidBlocksShaderProgram->UploadUniformMat4("u_solidBlockModelMatrices[" + std::to_string(i) + "]", modelMatrix);
-    //     m_solidBlocksShaderProgram->UploadUniformFloat3("u_blockColors[" + std::to_string(i) + "]", m_solidBlocks[i].color); 
-    // }
-    // RenderCommands::DrawIndexInstanced(m_solidBlocksVAO, GL_TRIANGLES, m_solidBlocks.size());
-
     for (const auto& block : m_solidBlocks){
-        // Temporary draw call for each one
+        // Draws each individual block. Did not have time to figure out instanced drawing for solid cubes
         glm::mat4 solidBlockModelMatrix = glm::mat4(1.0f);
         solidBlockModelMatrix = glm::translate(solidBlockModelMatrix, block.worldCoordinate);
         solidBlockModelMatrix = glm::scale(solidBlockModelMatrix, glm::vec3(0.5f, 0.5, 0.5f));
@@ -604,32 +579,32 @@ glm::vec3 ExamApplication::GetColorForSolidBlock(int zPos)
 void ExamApplication::MakeLPiece()
 {
     ActiveBlock block;
-    block.gridCoordinate = glm::ivec3(1, 2, 0);
-    block.worldCoordinate = glm::vec3(-0.5f, 0.0f, 2.0f);
+    block.gridCoordinate = glm::ivec3(2, 3, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.5f, 2.0f);
     m_activePiece.push_back(block);
 
     block.gridCoordinate = glm::ivec3(2, 2, 0);
     block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
     m_activePiece.push_back(block);
 
-    block.gridCoordinate = glm::ivec3(2, 2, 1);
-    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 1.5f);
+    block.gridCoordinate = glm::ivec3(2, 1, 0);
+    block.worldCoordinate = glm::vec3(0.0f, -0.5f, 2.0f);
     m_activePiece.push_back(block);
 
-    block.gridCoordinate = glm::ivec3(2, 2, 2);
-    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 1.0f);
+    block.gridCoordinate = glm::ivec3(1, 1, 0);
+    block.worldCoordinate = glm::vec3(-0.5f, -0.5f, 2.0f);
     m_activePiece.push_back(block);
 }
 
 void ExamApplication::MakeTPiece()
 {
     ActiveBlock block;
-    block.gridCoordinate = glm::ivec3(2, 2, 0);
-    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
-    m_activePiece.push_back(block);
-
     block.gridCoordinate = glm::ivec3(1, 2, 0);
     block.worldCoordinate = glm::vec3(-0.5f, 0.0f, 2.0f);
+    m_activePiece.push_back(block);
+    
+    block.gridCoordinate = glm::ivec3(2, 2, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
     m_activePiece.push_back(block);
 
     block.gridCoordinate = glm::ivec3(3, 2, 0);
@@ -648,12 +623,12 @@ void ExamApplication::MakeZPiece()
     block.worldCoordinate = glm::vec3(-0.5f, 0.0f, 2.0f);
     m_activePiece.push_back(block);
 
-    block.gridCoordinate = glm::ivec3(2, 2, 0);
-    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
-    m_activePiece.push_back(block);
-
     block.gridCoordinate = glm::ivec3(2, 3, 0);
     block.worldCoordinate = glm::vec3(0.0f, 0.5f, 2.0f);
+    m_activePiece.push_back(block);
+
+    block.gridCoordinate = glm::ivec3(2, 2, 0);
+    block.worldCoordinate = glm::vec3(0.0f, 0.0f, 2.0f);
     m_activePiece.push_back(block);
 
     block.gridCoordinate = glm::ivec3(3, 3, 0);
