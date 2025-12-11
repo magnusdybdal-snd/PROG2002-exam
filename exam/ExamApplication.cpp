@@ -256,73 +256,25 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow *window)
 
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
         if (!keyWasPressed) {
-            bool canMove = true;
-            for (const auto& block : m_activePiece) {
-                if (IsOccupied(block.gridCoordinate + glm::ivec3(1, 0, 0))) {
-                    canMove = false;
-                    break;
-                }
-            }
-            if (canMove) {
-                for (auto& block: m_activePiece) {
-                    block.gridCoordinate[0]++;
-                    block.worldCoordinate += glm::vec3(0.5f, 0.0f, 0.0f);
-                }
-            }
+            TryToMoveActivePiece(glm::ivec3(1, 0, 0), glm::vec3(0.5f, 0.0f, 0.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
         if (!keyWasPressed) {
-            bool canMove = true;
-            for (const auto& block : m_activePiece) {
-                if (IsOccupied(block.gridCoordinate + glm::ivec3(-1, 0, 0))) {
-                    canMove = false;
-                    break;
-                }
-            }
-            if (canMove) {
-                for (auto& block: m_activePiece) {
-                    block.gridCoordinate[0]--;
-                    block.worldCoordinate += glm::vec3(-0.5f, 0.0f, 0.0f);
-                }
-            }
+            TryToMoveActivePiece(glm::ivec3(-1, 0, 0), glm::vec3(-0.5f, 0.0f, 0.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
         if (!keyWasPressed) {
-            bool canMove = true;
-            for (const auto& block : m_activePiece) {
-                if (IsOccupied(block.gridCoordinate + glm::ivec3(0, 1, 0))) {
-                    canMove = false;
-                    break;
-                }
-            }
-            if (canMove) {
-                for (auto& block: m_activePiece) {
-                    block.gridCoordinate[1]++;
-                    block.worldCoordinate += glm::vec3(0.0f, 0.5f, 0.0f);
-                }
-            }
+            TryToMoveActivePiece(glm::ivec3(0, 1, 0), glm::vec3(0.0f, 0.5f, 0.0f));
         }
         keyIsPressed = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
         if (!keyWasPressed) {
-            bool canMove = true;
-            for (const auto& block : m_activePiece) {
-                if (IsOccupied(block.gridCoordinate + glm::ivec3(0, -1, 0))) {
-                    canMove = false;
-                    break;
-                }
-            }
-            if (canMove) {
-                for (auto& block: m_activePiece) {
-                    block.gridCoordinate[1]--;
-                    block.worldCoordinate += glm::vec3(0.0f, -0.5f, 0.0f);
-                }
-            }
+            TryToMoveActivePiece(glm::ivec3(0, -1, 0), glm::vec3(0.0f, -0.5f, 0.0f));
         }
         keyIsPressed = true;
     }
@@ -376,6 +328,20 @@ void ExamApplication::InputHandleBlockMovement(GLFWwindow *window)
         keyIsPressed = true;
     }
     keyWasPressed = keyIsPressed;
+}
+
+bool ExamApplication::TryToMoveActivePiece(glm::ivec3 gridDiff, glm::vec3 worldDiff)
+{
+    for (const auto& block : m_activePiece) {
+        if (IsOccupied(block.gridCoordinate + gridDiff)){
+            return false;
+        }
+    }
+    for (auto& block : m_activePiece) {
+        block.gridCoordinate += gridDiff;
+        block.worldCoordinate += worldDiff;
+    }
+    return true;
 }
 
 void ExamApplication::RenderTunnel()

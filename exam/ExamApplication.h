@@ -99,6 +99,7 @@ private:
     void InputHandleBlockMovement(GLFWwindow *window);
     void InputHandleTextureToggle(GLFWwindow *window);
     void InputHandleRotation(GLFWwindow *window);
+    bool TryToMoveActivePiece(glm::ivec3 gridDiff, glm::vec3 worldDiff);
 
     // ===== ROTATION =====
     void PitchActivePiece(bool positive);
