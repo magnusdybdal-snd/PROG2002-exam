@@ -20,6 +20,7 @@ uniform vec2 u_GridSize;        // Grid size of the wall (5x10 for sides, 5x5 fo
 uniform int u_textureEnabled;   // Flag for if the textures should be shown
 uniform float u_ambientStrength;
 uniform vec3 u_lightSourcePosition;
+uniform vec3 u_lightSourcePosition2;
 uniform float u_diffuseStr;
 uniform vec3 u_cameraPosition;
 uniform float u_specularStr;
@@ -30,9 +31,12 @@ void main()
     vec4 textureColor = texture(u_WallTextureSampler, v_tCoords);
     vec3 borderColor = vec3(0.2, 0.8, 0.2);
 
-    // Diffuse light calculations
+    // Diffuse light calculations from block
     vec3 lightDirection = normalize(vec3(u_lightSourcePosition - v_fragPos.xyz));
     float diffuseStrength = max(dot(lightDirection, v_normal.xyz), 0.0) * u_diffuseStr;
+    // Diffuse light calculations from sun
+    vec3 lightDirection2 = normalize(vec3(u_lightSourcePosition2 - v_fragPos.xyz));
+    float diffuseStrength2 = max(dot(lightDirection2, v_normal.xyz), 0.0) * u_diffuseStr / 4.0;
 
     // Specualr illumination
     vec3 reflectedLight = normalize(reflect(-lightDirection, v_normal.xyz));
@@ -58,7 +62,7 @@ void main()
     if (u_textureEnabled == 0) {
         // If texture flag is off we use the border color and the alpha (0.0 or 1.0 when close to edge)
         // This will draw borders / grid for our tunnel
-        fragColor = vec4((borderColor * (u_ambientStrength + diffuseStrength + specular)), alpha);
+        fragColor = vec4((borderColor * (u_ambientStrength + diffuseStrength + diffuseStrength2 + specular)), alpha);
     } else {
         // First we blend the texture and a blue color
         vec4 textureBlend = mix(textureColor, vec4(0.27, 0.5, 1.0, 1.0), 0.3);
@@ -66,7 +70,7 @@ void main()
         // alpha is dynamic so we either show the blended texture OR a black border
         vec4 finalColor = mix(textureBlend, vec4(0.0, 0.0, 0.0, 1.0), alpha);
         // Only apply lighting to the rgb channels
-        fragColor = vec4(finalColor.rgb * (u_ambientStrength + diffuseStrength + specular), finalColor.a);
+        fragColor = vec4(finalColor.rgb * (u_ambientStrength + diffuseStrength + diffuseStrength2 + specular), finalColor.a);
     }
 }
 )";

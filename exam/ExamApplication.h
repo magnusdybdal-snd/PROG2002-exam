@@ -50,6 +50,7 @@ private:
 
     // ===== DYNAMIC MEMBER VARIABLES =====
     bool m_textureEnabled = false;
+    glm::vec3 m_sun;
 
     // ===== ACTIVE BLOCK =====
     float m_activeCubeLastMoveTime = 0.0f;                     // Keeps track of when to automatically move inwards
@@ -113,6 +114,7 @@ private:
     void MakeLPiece();
     void MakeTPiece();
     void MakeZPiece();
+    void UpdateSun();
 
 
 
