@@ -57,6 +57,7 @@ unsigned ExamApplication::Init()
     InitializeTunnel();
     InitializeCube();
     InitializeShaders();
+    glm::vec3 sun = glm::vec3(0.0f, 5.0f, -5.0f);
 
     return EXIT_SUCCESS;
 }
@@ -86,6 +87,7 @@ unsigned ExamApplication::Run()
 
         m_lightSourcePos = glm::vec3(m_activePiece[1].worldCoordinate);
 
+        UpdateSun();
         RenderTunnel();
         RenderSolidBlocks();
         RenderActiveCube();
@@ -385,6 +387,7 @@ void ExamApplication::RenderTunnel()
     m_tunnelShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
     m_tunnelShaderProgram->UploadUniformBool("u_textureEnabled", m_textureEnabled);
     m_tunnelShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
+    m_tunnelShaderProgram->UploadUniformFloat3("u_lightSourcePosition2", m_sun); // Light follow the active cube
     m_tunnelShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_lightSourcePos); // Light follow the active cube
     m_tunnelShaderProgram->UploadUniformFloat1("u_diffuseStr", glm::vec1(0.75f));
     m_tunnelShaderProgram->UploadUniformFloat3("u_cameraPosition", m_camera->GetPosition());
@@ -441,7 +444,8 @@ void ExamApplication::RenderSolidBlocks()
     m_solidBlocksShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
     m_solidBlocksShaderProgram->UploadUniformInt("u_textureEnabled", (int)m_textureEnabled);
     m_solidBlocksShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
-    m_solidBlocksShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_cubeModelMatrix[3]); // Light follow the active cube
+    m_solidBlocksShaderProgram->UploadUniformFloat3("u_lightSourcePosition", m_lightSourcePos); // Light follow the active cube
+    m_solidBlocksShaderProgram->UploadUniformFloat3("u_lightSourcePosition2", m_sun); // Light follow the active cube
     m_solidBlocksShaderProgram->UploadUniformFloat1("u_diffuseStr", glm::vec1(0.5f)); // Hard coded, make var if want to change
     m_solidBlocksShaderProgram->UploadUniformFloat3("u_cameraPosition", m_camera->GetPosition());
     m_solidBlocksShaderProgram->UploadUniformFloat1("u_specularStr", glm::vec1(1.0f));
@@ -683,6 +687,7 @@ void ExamApplication::InputHandleRotation(GLFWwindow *window)
 
 void ExamApplication::PitchActivePiece(bool positive)
 {
+    //https://tetris.wiki/Super_Rotation_System
     // Set direction based on bool flag
     int direction = positive ? 1 : -1;
 
@@ -697,7 +702,8 @@ void ExamApplication::PitchActivePiece(bool positive)
         glm::ivec3 relativeGridCoordinate = block.gridCoordinate - pivotPointGridCoordinate;
 
         /* Get the new values. The axis we rotate around does not change for any block
-         * Relative position on the other two axis swaps */
+         * Relative position on the other two axis swaps 
+         https://math.stackexchange.com/questions/2727405/rotate-2d-coordinates */
         int newY = (-relativeGridCoordinate[2] * direction);
         int newZ = ( relativeGridCoordinate[1] * direction); 
 
@@ -811,4 +817,16 @@ void ExamApplication::YawActivePiece(bool positive)
             (2 - rotatedGridCoordinates[i].z) / 2.0f
         );
     }  
+}
+
+void ExamApplication::UpdateSun()
+{
+    float time = glfwGetTime() / 3;
+    float radius = 4.0f;               // distance from origin
+    m_sun.x = radius * cos(time);
+    m_sun.z = -5.0f;                   
+    m_sun.y = radius * sin(time);
+
+    float brightness = sin(time + 4.5f) + 0.5;
+    m_globalIllumination = std::clamp(brightness, 0.0f, 0.5f);
 }
