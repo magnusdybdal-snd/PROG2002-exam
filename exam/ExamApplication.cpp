@@ -420,7 +420,6 @@ void ExamApplication::RenderActiveCube()
 
     // Common uniforms for active piece
     m_activeCubeShaderProgram->UploadUniformMat4("u_ViewProjectionMatrix", m_camera->GetViewProjectionMatrix());
-    m_activeCubeShaderProgram->UploadUniformFloat1("u_ambientStrength", glm::vec1(m_globalIllumination));
 
     // Upload all model matrices to the array
     for (int i = 0; i < m_activePiece.size(); i++) {
@@ -539,7 +538,7 @@ bool ExamApplication::IsOccupied(glm::ivec3 gridCoordinate)
     // Check edges of tunnel
     if (gridCoordinate[0] < 0 || gridCoordinate[0] > 4 || 
         gridCoordinate[1] < 0 || gridCoordinate[1] > 4 ||
-        gridCoordinate[2] > 9) {
+        gridCoordinate[2] < 0 || gridCoordinate[2] > 9) {
             return true;
         }
     // Go trough all solid blocks and check for collision
@@ -726,7 +725,7 @@ void ExamApplication::PitchActivePiece(bool positive)
         m_activePiece[i].worldCoordinate = glm::vec3(
             (rotatedGridCoordinates[i].x - 2) / 2.0f,
             (rotatedGridCoordinates[i].y - 2) / 2.0f,
-            (2 - rotatedGridCoordinates[i].z) / 2.0f
+            2.0f - (rotatedGridCoordinates[i].z) / 2.0f
         );
     }
 }
@@ -770,7 +769,7 @@ void ExamApplication::RollActivePiece(bool positive)
         m_activePiece[i].worldCoordinate = glm::vec3(
             (rotatedGridCoordinates[i].x - 2) / 2.0f,
             (rotatedGridCoordinates[i].y - 2) / 2.0f,
-            (2 - rotatedGridCoordinates[i].z) / 2.0f
+            2.0f - (rotatedGridCoordinates[i].z) / 2.0f
         );
     }
 }
@@ -814,7 +813,7 @@ void ExamApplication::YawActivePiece(bool positive)
         m_activePiece[i].worldCoordinate = glm::vec3(
             (rotatedGridCoordinates[i].x - 2) / 2.0f,
             (rotatedGridCoordinates[i].y - 2) / 2.0f,
-            (2 - rotatedGridCoordinates[i].z) / 2.0f
+            2.0f - (rotatedGridCoordinates[i].z) / 2.0f
         );
     }  
 }
