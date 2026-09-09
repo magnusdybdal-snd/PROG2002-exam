@@ -1,5 +1,20 @@
 # PROG2002 Exam
 
+## Overview
+
+A 3D Tetris-style puzzle game built from scratch in C++ and OpenGL as the exam project for NTNU's PROG2002 Graphics Programming course. Pieces fall down a textured tunnel and can be moved, rotated on all three axes, and stacked to fill the space, with collision detection against the walls and previously placed blocks. Rendering features instanced draw calls, texture/color blending, and Phong lighting (ambient, diffuse, and specular) from both the active piece and an orbiting sun light source.
+
+## Instructions
+
+```bash
+git clone --recursive git@github.com:magnusdybdal-snd/PROG2002-exam.git
+cd PROG2002-exam
+mkdir build; cd build
+cmake ../; make exam; ./bin/exam
+```
+
+If you already cloned without `--recursive`, run `git submodule update --init --recursive` first.
+
 Cpp file got pretty large in the end
 Due to time restrictions and the fact that the project has ben developing for the past 72 hours there is alot of repeat code.
 Ive tried to put the least important code / functions that is mostly boilerplate and input management in the bottom.
